@@ -7,7 +7,6 @@
 import { Fighter } from "../objects/fighter";
 
 export class MainScene extends Phaser.Scene {
-  private phaserSprite: Phaser.GameObjects.Sprite;
   private actionDude: Phaser.GameObjects.Sprite;
 
   constructor() {
@@ -35,30 +34,5 @@ export class MainScene extends Phaser.Scene {
   update(): void {
     this.actionDude.update();
     const s = this.input.keyboard.addKey('S');
-    
-    if (s.isDown) {
-      const sword = this.add.sprite(this.actionDude.x, this.actionDude.y, "sword");
-
-      if (this.actionDude.anims.getCurrentKey() === "down") {
-        sword.y += 16;
-        sword.toggleFlipY();
-      } else if (this.actionDude.anims.getCurrentKey() === "up") {
-        sword.y -= 16;
-        sword.toggleFlipX();
-      } else if (this.actionDude.anims.getCurrentKey() === "left") {
-        sword.x -= 16;
-      } else if (this.actionDude.anims.getCurrentKey() === "right") {
-        sword.x += 16;
-        sword.toggleFlipY();
-        sword.toggleFlipX();
-      }
-
-      this.tweens.add({
-        targets: sword,
-        duration: 50,
-        angle: -90,
-      });
-      setTimeout(() => sword.destroy(), 75);
-    }
   }
 }
