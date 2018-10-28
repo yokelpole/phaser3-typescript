@@ -1,52 +1,28 @@
-export class Fighter extends Phaser.GameObjects.Sprite {
+interface ConstructorParams {
+  scene: Phaser.Scene;
+  x: integer;
+  y: integer;
+  key: string;
+  isPlayer: boolean;
+}
+
+export class Fighter extends Phaser.Physics.Arcade.Sprite {
+  public sword: Phaser.Physics.Arcade.Sprite;
   private cursorKeys: CursorKeys;
   private sKey: Phaser.Input.Keyboard.Key;
-  private sword;
 
-  constructor(params) {
-    super(params.scene, params.x, params.y, params.key, params.frame);
+  constructor({ scene, x, y, key, isPlayer }: ConstructorParams) {
+    super(scene, x, y, key);
 
-    this.cursorKeys = params.scene.input.keyboard.createCursorKeys();
-    this.sKey = params.scene.input.keyboard.addKey("S");
+    if (isPlayer) {
+      this.cursorKeys = scene.input.keyboard.createCursorKeys();
+      this.sKey = scene.input.keyboard.addKey("S");
+    }
 
-    params.scene.anims.create({
-      targets: this,
-      key: "down",
-      frames: params.scene.anims.generateFrameNumbers("characters", {
-        start: 0,
-        end: 1
-      }),
-      frameRate: 10
-    });
-    params.scene.anims.create({
-      targets: this,
-      key: "up",
-      frames: params.scene.anims.generateFrameNumbers("characters", {
-        start: 2,
-        end: 3
-      }),
-      frameRate: 10
-    });
-    params.scene.anims.create({
-      targets: this,
-      key: "right",
-      frames: params.scene.anims.generateFrameNumbers("characters", {
-        start: 4,
-        end: 5
-      }),
-      frameRate: 10
-    });
-    params.scene.anims.create({
-      targets: this,
-      key: "left",
-      frames: params.scene.anims.generateFrameNumbers("characters", {
-        start: 6,
-        end: 7
-      }),
-      frameRate: 10
-    });
+    this.setDepth(5);
 
-    params.scene.add.existing(this);
+    scene.add.existing(this);
+    scene.physics.add.existing(this);
   }
 
   update(): void {
@@ -69,32 +45,34 @@ export class Fighter extends Phaser.GameObjects.Sprite {
     }
 
     if (this.sKey.isDown && !this.sword) {
-      this.sword = this.scene.add.sprite(this.x, this.y, "sword");
+      this.sword = this.scene.physics.add.sprite(this.x, this.y, "sword");
 
-        if (this.anims.getCurrentKey() === "down") {
-          this.sword.y += 16;
-          this.sword.toggleFlipY();
-        } else if (this.anims.getCurrentKey() === "up") {
-          this.sword.y -= 16;
-          this.sword.toggleFlipX();
-        } else if (this.anims.getCurrentKey() === "left") {
-          this.sword.x -= 16;
-        } else if (this.anims.getCurrentKey() === "right") {
-          this.sword.x += 16;
-          this.sword.toggleFlipY();
-          this.sword.toggleFlipX();
-        }
+      if (this.anims.getCurrentKey() === "down") {
+        this.sword.y += 16;
+        this.sword.toggleFlipY();
+        this.sword.setDepth(6); // Sword needs to be on top of fighter.
+      } else if (this.anims.getCurrentKey() === "up") {
+        this.sword.y -= 16;
+        this.sword.toggleFlipX();
+      } else if (this.anims.getCurrentKey() === "left") {
+        this.sword.x -= 16;
+      } else if (this.anims.getCurrentKey() === "right") {
+        this.sword.x += 16;
+        this.sword.toggleFlipY();
+        this.sword.toggleFlipX();
+      }
 
-        this.scene.tweens.add({
-          targets: this.sword,
-          duration: 200,
-          angle: -90,
-        });
+      this.sword;
+      this.scene.tweens.add({
+        targets: this.sword,
+        duration: 200,
+        angle: -90
+      });
 
-        setTimeout(() => { 
-          this.sword.destroy();
-          this.sword = null;
-        }, 200);
+      setTimeout(() => {
+        this.sword.destroy();
+        this.sword = null;
+      }, 200);
     }
   }
 }

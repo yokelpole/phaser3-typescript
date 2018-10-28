@@ -8,6 +8,7 @@
 
 import "phaser";
 import { MainScene } from "./scenes/mainScene";
+import * as _ from "lodash";
 
 // main game configuration
 const config: GameConfig = {
@@ -19,7 +20,7 @@ const config: GameConfig = {
   physics: {
     default: "arcade",
     arcade: {
-      gravity: { y: 200 }
+      gravity: { y: 0 }
     }
   }
 };
