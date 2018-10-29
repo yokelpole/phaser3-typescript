@@ -10,6 +10,8 @@ import * as _ from "lodash";
 export class MainScene extends Phaser.Scene {
   private actionDude: Fighter;
   private otherDude: Fighter;
+  private otherDudes: Fighter[] = [];
+  private webSocket: WebSocket;
 
   constructor() {
     super({
@@ -65,8 +67,8 @@ export class MainScene extends Phaser.Scene {
 
     this.actionDude = new Fighter({
       scene: this,
-      x: 32,
-      y: 32,
+      x: _.random(_.toNumber(this.sys.game.config.width)),
+      y: _.random(_.toNumber(this.sys.game.config.height)),
       key: "characters",
       isPlayer: true
     });
@@ -74,7 +76,7 @@ export class MainScene extends Phaser.Scene {
     // TODO: Need to make options for non player.
     // TODO: Need to think of incoporating other classes into fighter -
     //       maybe have a parent class for all playable units?
-    this.otherDude = new Fighter({
+    /*this.otherDude = new Fighter({
       scene: this,
       x: 128,
       y: 128,
@@ -85,23 +87,74 @@ export class MainScene extends Phaser.Scene {
     this.physics.add.collider(
       this.actionDude,
       this.otherDude,
-      (
-        first: Phaser.Physics.Arcade.Sprite,
-        second: Phaser.Physics.Arcade.Sprite
-      ) => {
-        if (first.anims.getCurrentKey() === "down") first.y -= 4;
-        if (first.anims.getCurrentKey() === "up") first.y += 4;
-        if (first.anims.getCurrentKey() === "left") first.x += 4;
-        if (first.anims.getCurrentKey() === "right") first.x -= 4;
-      }
-    );
+      this.handlePlayerCollision
+    );*/
+
+    this.webSocket = new WebSocket("ws://localhost:8090/ws");
+    this.webSocket.onopen = event => {
+      // TODO: Report to server that new character has joined.
+      console.log(event);
+      console.log("### WE ARE CONNECTED");
+    };
+
+    this.webSocket.onmessage = message => {
+      console.log('### MESSAGE RECEIVED');
+      console.log(message.data);
+      const resp = JSON.parse(message.data);
+
+      _.each(resp.objects, obj => {
+        if (obj.id === this.actionDude.id) return;
+
+        if (_.includes(_.map(this.otherDudes, 'id'), obj.id)) {
+          const dude = this.otherDudes.find(dude => dude.id === obj.id);
+          if (!dude) return;
+          dude.x = obj.x;
+          dude.y = obj.y;
+        } else {
+          // ADD TO BOARD
+          this.otherDudes.push(
+            new Fighter({
+              scene: this,
+              id: obj.id,
+              x: obj.x,
+              y: obj.y,
+              key: "characters",
+              isPlayer: false,
+            })
+          );
+        }
+      });
+    };
+  }
+
+  handlePlayerCollision(first: Phaser.Physics.Arcade.Sprite): void {
+    if (first.anims.getCurrentKey() === "down") first.y -= 4;
+    if (first.anims.getCurrentKey() === "up") first.y += 4;
+    if (first.anims.getCurrentKey() === "left") first.x += 4;
+    if (first.anims.getCurrentKey() === "right") first.x -= 4;
   }
 
   update(): void {
     this.actionDude.update();
     const s = this.input.keyboard.addKey("S");
 
-    if (this.actionDude.sword) {
+    // TODO: Add tracking for when user changes their position.
+    if (
+      this.actionDude.hasMoved &&
+      this.webSocket.readyState === this.webSocket.OPEN
+    ) {
+      this.webSocket.send(
+        JSON.stringify({
+          id: this.actionDude.id,
+          type: "player",
+          x: this.actionDude.x,
+          y: this.actionDude.y
+        })
+      );
+      this.actionDude.hasMoved = false;
+    }
+
+    /*if (this.actionDude.sword) {
       this.physics.add.collider(
         this.actionDude.sword,
         this.otherDude,
@@ -123,6 +176,12 @@ export class MainScene extends Phaser.Scene {
         key: "characters",
         isPlayer: false
       });
-    }
+
+      this.physics.add.collider(
+        this.actionDude,
+        this.otherDude,
+        this.handlePlayerCollision
+      );
+    }*/
   }
 }

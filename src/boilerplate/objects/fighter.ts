@@ -1,17 +1,23 @@
+import * as uuidv4 from "uuid/v4";
+
 interface ConstructorParams {
   scene: Phaser.Scene;
   x: integer;
   y: integer;
   key: string;
+  id?: string;
   isPlayer: boolean;
 }
 
 export class Fighter extends Phaser.Physics.Arcade.Sprite {
+  public id: string = uuidv4();
   public sword: Phaser.Physics.Arcade.Sprite;
+  public hasMoved: boolean = false;
+
   private cursorKeys: CursorKeys;
   private sKey: Phaser.Input.Keyboard.Key;
 
-  constructor({ scene, x, y, key, isPlayer }: ConstructorParams) {
+  constructor({ scene, x, y, key, id, isPlayer }: ConstructorParams) {
     super(scene, x, y, key);
 
     if (isPlayer) {
@@ -20,12 +26,22 @@ export class Fighter extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.setDepth(5);
+    this.id = id || uuidv4();
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
   }
 
   update(): void {
+    if (
+      this.cursorKeys.down.isDown ||
+      this.cursorKeys.up.isDown ||
+      this.cursorKeys.left.isDown ||
+      this.cursorKeys.right.isDown
+    ) {
+      this.hasMoved = true;
+    }
+
     if (this.cursorKeys.left.isDown) {
       this.x -= 4;
       if (this.sword) this.sword.x -= 4;

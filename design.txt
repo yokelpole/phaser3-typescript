@@ -1,0 +1,14 @@
+******
+Layout of serverside JSON update
+******
+
+{
+  game_id: string,
+  objects: [
+    {
+      type: 'player',
+      x: number,
+      y: number,
+    }
+  ]
+}

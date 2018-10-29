@@ -22,7 +22,8 @@
   "dependencies": {
     "@types/lodash": "^4.14.117",
     "lodash": "4.17.11",
-    "phaser": "3.10.1"
+    "phaser": "3.10.1",
+    "uuid": "3.3.2"
   },
   "scripts": {
     "dev": "webpack --mode development && webpack-dev-server --mode development",
