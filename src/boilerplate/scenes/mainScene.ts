@@ -1,16 +1,14 @@
-/**
- * @author       Digitsensitive <digit.sensitivee@gmail.com>
- * @copyright    2018 Digitsensitive
- * @license      Digitsensitive
- */
-
 import { Player } from "../objects/player";
 import * as _ from "lodash";
+import { WebSocketManager } from "../network/websocket-manager";
 
+// TODO: Need to have some kind of game manager to track the player
+// types and all of that jazz.
+// This is a bad place to track the game's state.
 export class MainScene extends Phaser.Scene {
-  private player: Player;
-  private otherPlayers: Player[] = [];
-  private webSocket: WebSocket;
+  private webSocket: WebSocketManager;
+  public player: Player;
+  public otherPlayers: Player[] = [];
   private playerTypes: string[] = [
     "fighter",
     "thief",
@@ -23,6 +21,11 @@ export class MainScene extends Phaser.Scene {
   constructor() {
     super({
       key: "MainScene"
+    });
+
+    this.webSocket = new WebSocketManager({
+      address: "wss://ancient-dawn-33329.herokuapp.com/ws", // ws://localhost:8090/ws
+      scene: this,
     });
   }
 
@@ -90,69 +93,6 @@ export class MainScene extends Phaser.Scene {
     this.generateAnimationFrames();
 
     this.player = this.createNewRandomPlayer();
-
-    this.webSocket = new WebSocket("wss://ancient-dawn-33329.herokuapp.com/ws"); // ws://localhost:8090/ws
-    this.webSocket.onopen = () => this.sendServerPlayerLocation();
-
-    this.webSocket.onmessage = message => {
-      // TODO: This needs a BIG refactor.
-      // How dead players are handled is ridiculous.
-      let resp;
-      console.log(message.data);
-      try {
-        resp = JSON.parse(message.data);
-      } catch(err) {
-        throw err;
-      }
-
-      if (!resp) return;
-
-      _.each(resp.objects, obj => {
-        if (obj.id === this.player.id) {
-          if (obj.type !== 'dead') return;
-
-          this.player.destroy();
-          this.player = this.createNewRandomPlayer();
-          this.sendServerPlayerLocation();
-          return;
-        };
-
-        if (_.includes(_.map(this.otherPlayers, "id"), obj.id)) {
-          const player = this.otherPlayers.find(player => player.id === obj.id);
-          if (!player) return;
-          if (obj.type === 'dead') {
-            player.destroy();
-            return;
-          }
-
-          if (player.x < obj.x) player.anims.play(`${player.type}-right`, true);
-          else if (player.x > obj.x) player.anims.play(`${player.type}-left`, true);
-          else if (player.y < obj.y) player.anims.play(`${player.type}-down`, true);
-          else if (player.y > obj.y) player.anims.play(`${player.type}-up`, true);
-
-          player.x = obj.x;
-          player.y = obj.y;
-        } else {
-          if (obj.type === "dead") return;
-
-          const newPlayer = new Player({
-            scene: this,
-            id: obj.id,
-            x: obj.x,
-            y: obj.y,
-            key: "characters",
-            type: obj.type,
-            isPlayer: false
-          });
-          this.otherPlayers.push(newPlayer);
-          this.physics.add.collider(
-            this.player,
-            newPlayer,
-            this.handlePlayerCollision
-          );
-        }
-      });
-    };
   }
 
   handlePlayerCollision(first: Phaser.Physics.Arcade.Sprite): void {
@@ -160,17 +100,6 @@ export class MainScene extends Phaser.Scene {
     if (first.anims.getCurrentKey() === `${first.type}-up`) first.y += 4;
     if (first.anims.getCurrentKey() === `${first.type}-left`) first.x += 4;
     if (first.anims.getCurrentKey() === `${first.type}-right`) first.x -= 4;
-  }
-
-  sendServerPlayerLocation() {
-    this.webSocket.send(
-      JSON.stringify({
-        id: this.player.id,
-        type: this.player.type, 
-        x: this.player.x,
-        y: this.player.y
-      })
-    );
   }
 
   update(): void {
@@ -182,7 +111,7 @@ export class MainScene extends Phaser.Scene {
       this.player.hasMoved &&
       this.webSocket.readyState === this.webSocket.OPEN
     ) {
-      this.sendServerPlayerLocation();
+      this.webSocket.sendServerPlayerLocation();
       this.player.hasMoved = false;
     }
 
@@ -190,17 +119,14 @@ export class MainScene extends Phaser.Scene {
       this.physics.add.collider(
         this.player.sword,
         this.otherPlayers,
-        (
-          sword: Phaser.Physics.Arcade.Sprite,
-          deadPlayer: Player
-        ) => {
+        (sword: Phaser.Physics.Arcade.Sprite, deadPlayer: Player) => {
           deadPlayer.destroy();
           this.webSocket.send(
             JSON.stringify({
               id: deadPlayer.id,
-              type: 'dead',
+              type: "dead"
             })
-          )
+          );
         }
       );
     }
