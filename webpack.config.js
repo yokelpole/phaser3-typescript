@@ -17,6 +17,7 @@ module.exports = {
   devServer: {
     contentBase: path.resolve(__dirname, './'),
     publicPath: '/build/',
+    public: 'rocky-ravine-54492.herokuapp.com',
     host: '0.0.0.0',
     port: process.env.PORT || 8080,
     open: true
