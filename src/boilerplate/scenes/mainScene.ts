@@ -91,7 +91,7 @@ export class MainScene extends Phaser.Scene {
 
     this.player = this.createNewRandomPlayer();
 
-    this.webSocket = new WebSocket("ws://ancient-dawn-33329.herokuapp.com/ws"); // localhost:8090/ws
+    this.webSocket = new WebSocket("wss://ancient-dawn-33329.herokuapp.com/ws"); // ws://localhost:8090/ws
     this.webSocket.onopen = () => this.sendServerPlayerLocation();
 
     this.webSocket.onmessage = message => {
