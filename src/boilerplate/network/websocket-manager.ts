@@ -14,8 +14,11 @@ export class WebSocketManager extends WebSocket {
     super(address);
 
     this.scene = scene;
-    this.onopen = this.sendServerPlayerLocation;
-    this.onmessage = this.handleMessage;
+    this.onopen = () => {
+      this.sendServerPlayerLocation();
+      setTimeout(() => this.sendServerPlayerLocation(), 50);
+    }
+    this.onmessage = message => this.handleMessage(message);
   }
 
   handleMessage(message: MessageEvent) {
@@ -80,6 +83,8 @@ export class WebSocketManager extends WebSocket {
   }
 
   sendServerPlayerLocation() {
+    if (!this.scene.player.hasMoved) return;
+
     this.send(
       JSON.stringify({
         id: this.scene.player.id,
@@ -88,5 +93,7 @@ export class WebSocketManager extends WebSocket {
         y: this.scene.player.y
       })
     );
+
+    this.scene.player.hasMoved = false;
   }
 }

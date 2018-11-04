@@ -22,11 +22,6 @@ export class MainScene extends Phaser.Scene {
     super({
       key: "MainScene"
     });
-
-    this.webSocket = new WebSocketManager({
-      address: "wss://ancient-dawn-33329.herokuapp.com/ws", // ws://localhost:8090/ws
-      scene: this,
-    });
   }
 
   preload(): void {
@@ -93,6 +88,10 @@ export class MainScene extends Phaser.Scene {
     this.generateAnimationFrames();
 
     this.player = this.createNewRandomPlayer();
+    this.webSocket = new WebSocketManager({
+      address: "ws://localhost:8090/ws" || "wss://ancient-dawn-33329.herokuapp.com/ws", // ws://localhost:8090/ws
+      scene: this,
+    });
   }
 
   handlePlayerCollision(first: Phaser.Physics.Arcade.Sprite): void {
@@ -105,15 +104,6 @@ export class MainScene extends Phaser.Scene {
   update(): void {
     this.player.update();
     const s = this.input.keyboard.addKey("S");
-
-    // TODO: Add tracking for when user changes their position.
-    if (
-      this.player.hasMoved &&
-      this.webSocket.readyState === this.webSocket.OPEN
-    ) {
-      this.webSocket.sendServerPlayerLocation();
-      this.player.hasMoved = false;
-    }
 
     if (this.player.sword) {
       this.physics.add.collider(
