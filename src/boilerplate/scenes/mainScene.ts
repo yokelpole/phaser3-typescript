@@ -103,6 +103,7 @@ export class MainScene extends Phaser.Scene {
 
   update(): void {
     this.player.update();
+    if (this.player.hasMoved) this.webSocketManager.sendServerPlayerLocation();
     const s = this.input.keyboard.addKey("S");
 
     if (this.player.sword) {

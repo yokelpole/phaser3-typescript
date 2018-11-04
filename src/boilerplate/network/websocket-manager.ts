@@ -10,14 +10,13 @@ interface ConstructorParams {
 export class WebSocketManager {
   private scene: MainScene;
   private websocket: WebSocket;
+  private sendLock: boolean;
 
   constructor({ address, scene }: ConstructorParams) {
     this.scene = scene;
     this.websocket = new WebSocket(address);
-    this.websocket.onopen = () => {
+    this.websocket.onopen = () =>
       this.websocket.send(this.getPlayerJSONString());
-      setInterval(() => this.sendServerPlayerLocation(), 75);
-    };
     this.websocket.onmessage = message => this.handleMessage(message);
   }
 
@@ -95,11 +94,13 @@ export class WebSocketManager {
   }
 
   sendServerPlayerLocation() {
-    if (!this.scene.player.hasMoved) return;
+    if (!this.scene.player.hasMoved || this.sendLock) return;
 
+    this.sendLock = true;
     this.websocket.send(this.getPlayerJSONString());
 
     this.scene.player.hasMoved = false;
+    setTimeout(() => (this.sendLock = false), 33);
   }
 
   sendDeadPlayer(id: string) {
