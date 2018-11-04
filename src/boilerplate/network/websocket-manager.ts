@@ -3,22 +3,22 @@ import { Player } from "../objects/player";
 import { MainScene } from "../scenes/mainScene";
 
 interface ConstructorParams {
-  address: string,
+  address: string;
   scene: MainScene;
 }
 
-export class WebSocketManager extends WebSocket {
+export class WebSocketManager {
   private scene: MainScene;
+  private websocket: WebSocket;
 
   constructor({ address, scene }: ConstructorParams) {
-    super(address);
-
     this.scene = scene;
-    this.onopen = () => {
-      this.sendServerPlayerLocation();
-      setTimeout(() => this.sendServerPlayerLocation(), 50);
-    }
-    this.onmessage = message => this.handleMessage(message);
+    this.websocket = new WebSocket(address);
+    this.websocket.onopen = () => {
+      this.websocket.send(this.getPlayerJSONString());
+      setInterval(() => this.sendServerPlayerLocation(), 150);
+    };
+    this.websocket.onmessage = message => this.handleMessage(message);
   }
 
   handleMessage(message: MessageEvent) {
@@ -28,7 +28,7 @@ export class WebSocketManager extends WebSocket {
     try {
       resp = JSON.parse(message.data);
     } catch (err) {
-      console.log('### error parsing JSON.');
+      console.log("### error parsing JSON.");
       return;
     }
 
@@ -37,6 +37,7 @@ export class WebSocketManager extends WebSocket {
       if (obj.id === this.scene.player.id) {
         if (obj.type !== "dead") return;
 
+        console.log("### PLAYER IS DEAD");
         this.scene.player.destroy();
         this.scene.player = this.scene.createNewRandomPlayer();
         this.sendServerPlayerLocation();
@@ -44,7 +45,9 @@ export class WebSocketManager extends WebSocket {
       }
 
       if (_.includes(_.map(this.scene.otherPlayers, "id"), obj.id)) {
-        const player = this.scene.otherPlayers.find(player => player.id === obj.id);
+        const player = this.scene.otherPlayers.find(
+          player => player.id === obj.id
+        );
         if (!player) return;
         if (obj.type === "dead") {
           player.destroy();
@@ -82,18 +85,29 @@ export class WebSocketManager extends WebSocket {
     });
   }
 
+  getPlayerJSONString() {
+    return JSON.stringify({
+      id: this.scene.player.id,
+      type: this.scene.player.type,
+      x: this.scene.player.x,
+      y: this.scene.player.y
+    });
+  }
+
   sendServerPlayerLocation() {
     if (!this.scene.player.hasMoved) return;
 
-    this.send(
-      JSON.stringify({
-        id: this.scene.player.id,
-        type: this.scene.player.type, 
-        x: this.scene.player.x,
-        y: this.scene.player.y
-      })
-    );
+    this.websocket.send(this.getPlayerJSONString());
 
     this.scene.player.hasMoved = false;
+  }
+
+  sendDeadPlayer(id: string) {
+    this.websocket.send(
+      JSON.stringify({
+        id,
+        type: "dead"
+      })
+    );
   }
 }

@@ -6,7 +6,7 @@ import { WebSocketManager } from "../network/websocket-manager";
 // types and all of that jazz.
 // This is a bad place to track the game's state.
 export class MainScene extends Phaser.Scene {
-  private webSocket: WebSocketManager;
+  private webSocketManager: WebSocketManager;
   public player: Player;
   public otherPlayers: Player[] = [];
   private playerTypes: string[] = [
@@ -88,7 +88,7 @@ export class MainScene extends Phaser.Scene {
     this.generateAnimationFrames();
 
     this.player = this.createNewRandomPlayer();
-    this.webSocket = new WebSocketManager({
+    this.webSocketManager = new WebSocketManager({
       address: "ws://localhost:8090/ws" || "wss://ancient-dawn-33329.herokuapp.com/ws", // ws://localhost:8090/ws
       scene: this,
     });
@@ -111,12 +111,7 @@ export class MainScene extends Phaser.Scene {
         this.otherPlayers,
         (sword: Phaser.Physics.Arcade.Sprite, deadPlayer: Player) => {
           deadPlayer.destroy();
-          this.webSocket.send(
-            JSON.stringify({
-              id: deadPlayer.id,
-              type: "dead"
-            })
-          );
+          this.webSocketManager.sendDeadPlayer(deadPlayer.id);
         }
       );
     }
