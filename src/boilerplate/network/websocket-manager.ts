@@ -16,7 +16,7 @@ export class WebSocketManager {
     this.websocket = new WebSocket(address);
     this.websocket.onopen = () => {
       this.websocket.send(this.getPlayerJSONString());
-      setInterval(() => this.sendServerPlayerLocation(), 150);
+      setInterval(() => this.sendServerPlayerLocation(), 75);
     };
     this.websocket.onmessage = message => this.handleMessage(message);
   }
