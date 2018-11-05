@@ -1,4 +1,5 @@
 import * as uuidv4 from "uuid/v4";
+import * as _ from "lodash";
 
 interface ConstructorParams {
   scene: Phaser.Scene;
@@ -13,7 +14,7 @@ interface ConstructorParams {
 export class Player extends Phaser.Physics.Arcade.Sprite {
   public id: string = uuidv4();
   public sword: Phaser.Physics.Arcade.Sprite;
-  public hasMoved: boolean = false;
+  public hasMoved: boolean = true;
   public type: string;
 
   private cursorKeys: CursorKeys;
@@ -67,6 +68,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     if (this.sKey.isDown && !this.sword) {
       this.sword = this.scene.physics.add.sprite(this.x, this.y, "sword");
+      _.extend(this.sword, { id: uuidv4() });
 
       if (this.anims.getCurrentKey() === `${this.type}-down`) {
         this.sword.y += 16;

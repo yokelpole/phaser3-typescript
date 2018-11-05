@@ -89,7 +89,7 @@ export class MainScene extends Phaser.Scene {
 
     this.player = this.createNewRandomPlayer();
     this.webSocketManager = new WebSocketManager({
-      address: /*"ws://localhost:8090/ws" ||*/ "wss://ancient-dawn-33329.herokuapp.com/ws", // ws://localhost:8090/ws
+      address: "ws://localhost:8090/ws", // ||*/ "wss://ancient-dawn-33329.herokuapp.com/ws", // ws://localhost:8090/ws
       scene: this,
     });
   }
@@ -103,18 +103,18 @@ export class MainScene extends Phaser.Scene {
 
   update(): void {
     this.player.update();
-    if (this.player.hasMoved) this.webSocketManager.sendServerPlayerLocation();
-    const s = this.input.keyboard.addKey("S");
 
     if (this.player.sword) {
       this.physics.add.collider(
         this.player.sword,
         this.otherPlayers,
         (sword: Phaser.Physics.Arcade.Sprite, deadPlayer: Player) => {
+          this.webSocketManager.addDeadPlayer(deadPlayer);
           deadPlayer.destroy();
-          this.webSocketManager.sendDeadPlayer(deadPlayer.id);
         }
       );
     }
+
+    this.webSocketManager.sendMessage();
   }
 }

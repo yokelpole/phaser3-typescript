@@ -11,13 +11,53 @@ export class WebSocketManager {
   private scene: MainScene;
   private websocket: WebSocket;
   private sendLock: boolean;
+  private deadPlayers: Player[] = [];
 
   constructor({ address, scene }: ConstructorParams) {
     this.scene = scene;
     this.websocket = new WebSocket(address);
     this.websocket.onopen = () =>
-      this.websocket.send(this.getPlayerJSONString());
+      this.websocket.send([this.getPlayerJSONString()].toString());
     this.websocket.onmessage = message => this.handleMessage(message);
+  }
+
+  sendMessage() {
+    if (this.websocket.readyState !== this.websocket.OPEN) return;
+
+    this.sendLock = true;
+
+    const messages = [];
+    if (this.scene.player.hasMoved) {
+      messages.push(this.getPlayerJSONString());
+      this.scene.player.hasMoved = false;
+    }
+    if (this.scene.player.sword) {
+      messages.push(JSON.stringify({
+        // TODO: Use proper class to get id on sword
+        id: _.get(this.scene.player.sword, 'id'),
+        type: 'sword',
+        x: this.scene.player.sword.x,
+        y: this.scene.player.sword.y,
+      }));
+    }
+    if (this.deadPlayers.length) {
+      _.each(this.deadPlayers, deadPlayer => {
+        messages.push(JSON.stringify({
+          id: deadPlayer.id,
+          type: "dead",
+          x: deadPlayer.x,
+          y: deadPlayer.y,
+        }));
+      })
+
+      this.deadPlayers = [];
+    }
+
+    // TODO: Probably a better way of sending the websocket array rather than
+    // wrapping the array in a string array.
+    if (!_.isEmpty(messages)) this.websocket.send(`[${messages.toString()}]`);
+
+    setTimeout(() => (this.sendLock = false), 25);
   }
 
   handleMessage(message: MessageEvent) {
@@ -36,10 +76,8 @@ export class WebSocketManager {
       if (obj.id === this.scene.player.id) {
         if (obj.type !== "dead") return;
 
-        console.log("### PLAYER IS DEAD");
         this.scene.player.destroy();
         this.scene.player = this.scene.createNewRandomPlayer();
-        this.sendServerPlayerLocation();
         return;
       }
 
@@ -63,7 +101,7 @@ export class WebSocketManager {
         player.x = obj.x;
         player.y = obj.y;
       } else {
-        if (obj.type === "dead") return;
+        if (obj.type === "dead" || obj.type === "sword") return;
 
         const newPlayer = new Player({
           scene: this.scene,
@@ -93,22 +131,9 @@ export class WebSocketManager {
     });
   }
 
-  sendServerPlayerLocation() {
-    if (!this.scene.player.hasMoved || this.sendLock) return;
-
-    this.sendLock = true;
-    this.websocket.send(this.getPlayerJSONString());
-
-    this.scene.player.hasMoved = false;
-    setTimeout(() => (this.sendLock = false), 33);
-  }
-
-  sendDeadPlayer(id: string) {
-    this.websocket.send(
-      JSON.stringify({
-        id,
-        type: "dead"
-      })
-    );
+  // TODO: Remove this, we shouldn't be sending to the socket outside
+  // of the send function.
+  addDeadPlayer(deadPlayer: Player) {
+    this.deadPlayers.push(_.extend({}, deadPlayer, { type: "dead" }));
   }
 }
