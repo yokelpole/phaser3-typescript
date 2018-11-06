@@ -35,6 +35,7 @@ export class WebSocketManager {
       messages.push(JSON.stringify({
         // TODO: Use proper class to get id on sword
         id: _.get(this.scene.player.sword, 'id'),
+        parent_id: this.scene.player.id,
         type: 'sword',
         x: this.scene.player.sword.x,
         y: this.scene.player.sword.y,
@@ -100,8 +101,15 @@ export class WebSocketManager {
 
         player.x = obj.x;
         player.y = obj.y;
+      } else if (obj.type === "sword") {
+        const player = this.scene.otherPlayers.find(
+          player => player.id === obj.parent_id
+        );
+        if (!player) return;
+
+        player.addSword();
       } else {
-        if (obj.type === "dead" || obj.type === "sword") return;
+        if (obj.type === "dead") return;
 
         const newPlayer = new Player({
           scene: this.scene,

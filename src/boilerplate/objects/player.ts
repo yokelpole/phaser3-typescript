@@ -66,7 +66,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.anims.play(`${this.type}-down`, true);
     }
 
-    if (this.sKey.isDown && !this.sword) {
+    if (this.sKey.isDown && !this.sword) this.addSword(); 
+  }
+
+  addSword() {
       this.sword = this.scene.physics.add.sprite(this.x, this.y, "sword");
       _.extend(this.sword, { id: uuidv4() });
 
@@ -96,6 +99,5 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.sword.destroy();
         this.sword = null;
       }, 200);
-    }
   }
 }
