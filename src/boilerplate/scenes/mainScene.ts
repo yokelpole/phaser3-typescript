@@ -6,7 +6,7 @@ import { WebSocketManager } from "../network/websocket-manager";
 // types and all of that jazz.
 // This is a bad place to track the game's state.
 export class MainScene extends Phaser.Scene {
-  private webSocketManager: WebSocketManager;
+  public webSocketManager: WebSocketManager;
   public player: Player;
   public otherPlayers: Player[] = [];
   private playerTypes: string[] = [
@@ -110,6 +110,7 @@ export class MainScene extends Phaser.Scene {
         this.otherPlayers,
         (sword: Phaser.Physics.Arcade.Sprite, deadPlayer: Player) => {
           this.webSocketManager.addDeadPlayer(deadPlayer);
+          this.webSocketManager.addDeadSprite(sword);
           deadPlayer.destroy();
         }
       );

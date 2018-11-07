@@ -1,8 +1,9 @@
 import * as uuidv4 from "uuid/v4";
 import * as _ from "lodash";
+import { MainScene } from "../scenes/mainScene";
 
 interface ConstructorParams {
-  scene: Phaser.Scene;
+  scene: MainScene;
   x: integer;
   y: integer;
   key: string;
@@ -16,6 +17,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public sword: Phaser.Physics.Arcade.Sprite;
   public hasMoved: boolean = true;
   public type: string;
+  public scene: MainScene;
 
   private cursorKeys: CursorKeys;
   private sKey: Phaser.Input.Keyboard.Key;
@@ -96,6 +98,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       });
 
       setTimeout(() => {
+        this.scene.webSocketManager.addDeadSprite(_.cloneDeep(this.sword));
         this.sword.destroy();
         this.sword = null;
       }, 200);

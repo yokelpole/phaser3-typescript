@@ -12,6 +12,7 @@ export class WebSocketManager {
   private websocket: WebSocket;
   private sendLock: boolean;
   private deadPlayers: Player[] = [];
+  private deadSprites: Phaser.Physics.Arcade.Sprite[] = [];
 
   constructor({ address, scene }: ConstructorParams) {
     this.scene = scene;
@@ -32,26 +33,44 @@ export class WebSocketManager {
       this.scene.player.hasMoved = false;
     }
     if (this.scene.player.sword) {
-      messages.push(JSON.stringify({
-        // TODO: Use proper class to get id on sword
-        id: _.get(this.scene.player.sword, 'id'),
-        parent_id: this.scene.player.id,
-        type: 'sword',
-        x: this.scene.player.sword.x,
-        y: this.scene.player.sword.y,
-      }));
+      messages.push(
+        JSON.stringify({
+          // TODO: Use proper class to get id on sword
+          id: _.get(this.scene.player.sword, "id"),
+          parent_id: this.scene.player.id,
+          type: "sword",
+          x: this.scene.player.sword.x,
+          y: this.scene.player.sword.y
+        })
+      );
     }
     if (this.deadPlayers.length) {
       _.each(this.deadPlayers, deadPlayer => {
-        messages.push(JSON.stringify({
-          id: deadPlayer.id,
-          type: "dead",
-          x: deadPlayer.x,
-          y: deadPlayer.y,
-        }));
-      })
+        messages.push(
+          JSON.stringify({
+            id: deadPlayer.id,
+            type: "dead",
+            x: deadPlayer.x,
+            y: deadPlayer.y
+          })
+        );
+      });
 
       this.deadPlayers = [];
+    }
+    if (this.deadSprites.length) {
+      _.each(this.deadSprites, deadSword => {
+        messages.push(
+          JSON.stringify({
+            id: _.get(deadSword, "id"),
+            type: "dead",
+            x: deadSword.x,
+            y: deadSword.y
+          })
+        );
+      });
+
+      this.deadSprites = [];
     }
 
     // TODO: Probably a better way of sending the websocket array rather than
@@ -139,9 +158,11 @@ export class WebSocketManager {
     });
   }
 
-  // TODO: Remove this, we shouldn't be sending to the socket outside
-  // of the send function.
   addDeadPlayer(deadPlayer: Player) {
     this.deadPlayers.push(_.extend({}, deadPlayer, { type: "dead" }));
+  }
+
+  addDeadSprite(deadSprite: Phaser.Physics.Arcade.Sprite) {
+    this.deadSprites.push(_.extend({}, deadSprite, { type: "dead" }));
   }
 }
