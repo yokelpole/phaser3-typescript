@@ -11,8 +11,15 @@ export class WebSocketManager {
   private scene: MainScene;
   private websocket: WebSocket;
   private sendLock: boolean;
-  private deadPlayers: Player[] = [];
-  private deadSprites: Phaser.Physics.Arcade.Sprite[] = [];
+  private queuedSprites: Phaser.Physics.Arcade.Sprite[] = [];
+  private baseAttributes: string[] = [
+    "id",
+    "type",
+    "x",
+    "y",
+    "timestamp",
+    "parentId"
+  ];
 
   constructor({ address, scene }: ConstructorParams) {
     this.scene = scene;
@@ -32,45 +39,12 @@ export class WebSocketManager {
       messages.push(this.getPlayerJSONString());
       this.scene.player.hasMoved = false;
     }
-    if (this.scene.player.sword) {
-      messages.push(
-        JSON.stringify({
-          // TODO: Use proper class to get id on sword
-          id: _.get(this.scene.player.sword, "id"),
-          parent_id: this.scene.player.id,
-          type: "sword",
-          x: this.scene.player.sword.x,
-          y: this.scene.player.sword.y
-        })
-      );
-    }
-    if (this.deadPlayers.length) {
-      _.each(this.deadPlayers, deadPlayer => {
-        messages.push(
-          JSON.stringify({
-            id: deadPlayer.id,
-            type: "dead",
-            x: deadPlayer.x,
-            y: deadPlayer.y
-          })
-        );
-      });
 
-      this.deadPlayers = [];
-    }
-    if (this.deadSprites.length) {
-      _.each(this.deadSprites, deadSword => {
-        messages.push(
-          JSON.stringify({
-            id: _.get(deadSword, "id"),
-            type: "dead",
-            x: deadSword.x,
-            y: deadSword.y
-          })
-        );
+    if (this.queuedSprites) {
+      _.each(this.queuedSprites, sprite => {
+        messages.push(JSON.stringify(_.pick(sprite, this.baseAttributes)));
       });
-
-      this.deadSprites = [];
+      this.queuedSprites = [];
     }
 
     // TODO: Probably a better way of sending the websocket array rather than
@@ -92,6 +66,7 @@ export class WebSocketManager {
     }
 
     // TODO: Scene should probably handle a bunch of this.
+    // TODO: Obj should be typed.
     _.each(resp.objects, obj => {
       if (obj.id === this.scene.player.id) {
         if (obj.type !== "dead") return;
@@ -122,7 +97,7 @@ export class WebSocketManager {
         player.y = obj.y;
       } else if (obj.type === "sword") {
         const player = this.scene.otherPlayers.find(
-          player => player.id === obj.parent_id
+          player => player.id === obj.parentId
         );
         if (!player) return;
 
@@ -150,19 +125,14 @@ export class WebSocketManager {
   }
 
   getPlayerJSONString() {
-    return JSON.stringify({
-      id: this.scene.player.id,
-      type: this.scene.player.type,
-      x: this.scene.player.x,
-      y: this.scene.player.y
-    });
+    return JSON.stringify(_.pick(this.scene.player, this.baseAttributes));
   }
 
-  addDeadPlayer(deadPlayer: Player) {
-    this.deadPlayers.push(_.extend({}, deadPlayer, { type: "dead" }));
+  addSprite(sprite: Phaser.Physics.Arcade.Sprite) {
+    this.queuedSprites.push(sprite);
   }
 
   addDeadSprite(deadSprite: Phaser.Physics.Arcade.Sprite) {
-    this.deadSprites.push(_.extend({}, deadSprite, { type: "dead" }));
+    this.queuedSprites.push(_.extend({}, deadSprite, { type: "dead" }));
   }
 }

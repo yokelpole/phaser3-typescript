@@ -1,6 +1,7 @@
 import * as uuidv4 from "uuid/v4";
 import * as _ from "lodash";
 import { MainScene } from "../scenes/mainScene";
+import { Sword } from "./sword";
 
 interface ConstructorParams {
   scene: MainScene;
@@ -14,10 +15,12 @@ interface ConstructorParams {
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   public id: string = uuidv4();
-  public sword: Phaser.Physics.Arcade.Sprite;
+  public sword: Sword;
   public hasMoved: boolean = true;
   public type: string;
+  public status: string; // TODO: Implement this.
   public scene: MainScene;
+  public timestamp: number = Math.floor(Date.now() / 1000);
 
   private cursorKeys: CursorKeys;
   private sKey: Phaser.Input.Keyboard.Key;
@@ -36,8 +39,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setDepth(5);
     this.id = id || uuidv4();
 
-    scene.add.existing(this);
-    scene.physics.add.existing(this);
+    this.scene.add.existing(this);
+    this.scene.physics.add.existing(this);
   }
 
   update(): void {
@@ -68,39 +71,34 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.anims.play(`${this.type}-down`, true);
     }
 
-    if (this.sKey.isDown && !this.sword) this.addSword(); 
+    if (this.sKey.isDown) this.addSword();
   }
 
   addSword() {
-      this.sword = this.scene.physics.add.sprite(this.x, this.y, "sword");
-      _.extend(this.sword, { id: uuidv4() });
+    // TODO: We shouldn't be destroying and making the sword each time.
+    if (this.sword && this.sword.active) return;
+    if (this.sword && !this.sword.active) this.sword = null;
 
-      if (this.anims.getCurrentKey() === `${this.type}-down`) {
-        this.sword.y += 16;
-        this.sword.toggleFlipY();
-        this.sword.setDepth(6); // Sword needs to be on top of fighter.
-      } else if (this.anims.getCurrentKey() === `${this.type}-up`) {
-        this.sword.y -= 16;
-        this.sword.toggleFlipX();
-      } else if (this.anims.getCurrentKey() === `${this.type}-left`) {
-        this.sword.x -= 16;
-      } else if (this.anims.getCurrentKey() === `${this.type}-right`) {
-        this.sword.x += 16;
-        this.sword.toggleFlipY();
-        this.sword.toggleFlipX();
-      }
+    this.sword = new Sword({
+      scene: this.scene,
+      x: this.x,
+      y: this.y,
+      parentId: this.id
+    });
 
-      this.sword;
-      this.scene.tweens.add({
-        targets: this.sword,
-        duration: 200,
-        angle: -90
-      });
-
-      setTimeout(() => {
-        this.scene.webSocketManager.addDeadSprite(_.cloneDeep(this.sword));
-        this.sword.destroy();
-        this.sword = null;
-      }, 200);
+    if (this.anims.getCurrentKey() === `${this.type}-down`) {
+      this.sword.y += 16;
+      this.sword.toggleFlipY();
+      this.sword.setDepth(6); // Sword needs to be on top of fighter.
+    } else if (this.anims.getCurrentKey() === `${this.type}-up`) {
+      this.sword.y -= 16;
+      this.sword.toggleFlipX();
+    } else if (this.anims.getCurrentKey() === `${this.type}-left`) {
+      this.sword.x -= 16;
+    } else if (this.anims.getCurrentKey() === `${this.type}-right`) {
+      this.sword.x += 16;
+      this.sword.toggleFlipY();
+      this.sword.toggleFlipX();
+    }
   }
 }

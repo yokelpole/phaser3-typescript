@@ -109,7 +109,7 @@ export class MainScene extends Phaser.Scene {
         this.player.sword,
         this.otherPlayers,
         (sword: Phaser.Physics.Arcade.Sprite, deadPlayer: Player) => {
-          this.webSocketManager.addDeadPlayer(deadPlayer);
+          this.webSocketManager.addDeadSprite(deadPlayer);
           this.webSocketManager.addDeadSprite(sword);
           deadPlayer.destroy();
         }
