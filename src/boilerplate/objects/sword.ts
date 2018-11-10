@@ -12,6 +12,7 @@ export class Sword extends Phaser.Physics.Arcade.Sprite {
   constructor(params) {
     super(params.scene, params.x, params.y, "sword");
 
+    if (params.id) this.id = params.id;
     this.scene.add.existing(this);
     this.scene.physics.add.existing(this);
 

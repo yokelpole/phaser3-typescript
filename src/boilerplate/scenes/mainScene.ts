@@ -89,7 +89,7 @@ export class MainScene extends Phaser.Scene {
 
     this.player = this.createNewRandomPlayer();
     this.webSocketManager = new WebSocketManager({
-      address: "ws://localhost:8090/ws", // ||*/ "wss://ancient-dawn-33329.herokuapp.com/ws", // ws://localhost:8090/ws
+      address: /*"ws://localhost:8090/ws",*/ "wss://ancient-dawn-33329.herokuapp.com/ws", // ws://localhost:8090/ws
       scene: this,
     });
   }

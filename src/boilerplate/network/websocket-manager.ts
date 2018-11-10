@@ -101,7 +101,7 @@ export class WebSocketManager {
         );
         if (!player) return;
 
-        player.addSword();
+        player.addSword(obj.id);
       } else {
         if (obj.type === "dead") return;
 

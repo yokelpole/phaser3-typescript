@@ -74,12 +74,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.sKey.isDown) this.addSword();
   }
 
-  addSword() {
+  addSword(id: string = undefined) {
     // TODO: We shouldn't be destroying and making the sword each time.
     if (this.sword && this.sword.active) return;
+    if (this.sword && this.sword.id === id) return;
     if (this.sword && !this.sword.active) this.sword = null;
 
     this.sword = new Sword({
+      id,
       scene: this.scene,
       x: this.x,
       y: this.y,
