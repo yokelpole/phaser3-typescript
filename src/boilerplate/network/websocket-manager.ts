@@ -95,12 +95,14 @@ export class WebSocketManager {
 
         player.x = obj.x;
         player.y = obj.y;
+
+        if (player.sword) player.positionSword();
       } else if (obj.type === "sword") {
         const player = this.scene.otherPlayers.find(
           player => player.id === obj.parentId
         );
         if (!player) return;
-
+        
         player.addSword(obj.id);
       } else {
         if (obj.type === "dead") return;

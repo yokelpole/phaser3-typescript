@@ -88,17 +88,25 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       parentId: this.id
     });
 
+    this.positionSword()
+  }
+
+  positionSword() {
+    if (!this.sword) return;
+
+    this.sword.resetFlip();
+
     if (this.anims.getCurrentKey() === `${this.type}-down`) {
-      this.sword.y += 16;
+      this.sword.y = this.y + 16;
       this.sword.toggleFlipY();
-      this.sword.setDepth(6); // Sword needs to be on top of fighter.
+      if (this.sword.scene) this.sword.setDepth(6); // Sword needs to be on top of fighter.
     } else if (this.anims.getCurrentKey() === `${this.type}-up`) {
-      this.sword.y -= 16;
+      this.sword.y = this.y - 16;
       this.sword.toggleFlipX();
     } else if (this.anims.getCurrentKey() === `${this.type}-left`) {
-      this.sword.x -= 16;
+      this.sword.x = this.x - 16;
     } else if (this.anims.getCurrentKey() === `${this.type}-right`) {
-      this.sword.x += 16;
+      this.sword.x = this.x + 16;
       this.sword.toggleFlipY();
       this.sword.toggleFlipX();
     }
