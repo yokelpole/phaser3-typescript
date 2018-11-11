@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Player } from "../objects/player";
+import { Player, createNewRandomPlayer } from "../objects/player";
 import { MainScene } from "../scenes/mainScene";
 
 interface ConstructorParams {
@@ -40,7 +40,7 @@ export class WebSocketManager {
       this.scene.player.hasMoved = false;
     }
 
-    if (this.queuedSprites) {
+    if (!_.isEmpty(this.queuedSprites)) {
       _.each(this.queuedSprites, sprite => {
         messages.push(JSON.stringify(_.pick(sprite, this.baseAttributes)));
       });
@@ -72,7 +72,7 @@ export class WebSocketManager {
         if (obj.type !== "dead") return;
 
         this.scene.player.destroy();
-        this.scene.player = this.scene.createNewRandomPlayer();
+        this.scene.player = createNewRandomPlayer(this.scene);
         return;
       }
 
@@ -86,17 +86,7 @@ export class WebSocketManager {
           return;
         }
 
-        if (player.x < obj.x) player.anims.play(`${player.type}-right`, true);
-        else if (player.x > obj.x)
-          player.anims.play(`${player.type}-left`, true);
-        else if (player.y < obj.y)
-          player.anims.play(`${player.type}-down`, true);
-        else if (player.y > obj.y) player.anims.play(`${player.type}-up`, true);
-
-        player.x = obj.x;
-        player.y = obj.y;
-
-        if (player.sword) player.positionSword();
+        player.updatePlayerRemotely(obj.x, obj.y);
       } else if (obj.type === "sword") {
         const player = this.scene.otherPlayers.find(
           player => player.id === obj.parentId
@@ -116,11 +106,12 @@ export class WebSocketManager {
           type: obj.type,
           isPlayer: false
         });
+
         this.scene.otherPlayers.push(newPlayer);
         this.scene.physics.add.collider(
           this.scene.player,
           newPlayer,
-          this.scene.handlePlayerCollision
+          this.scene.player.handlePlayerCollision.bind(this.scene.player)
         );
       }
     });

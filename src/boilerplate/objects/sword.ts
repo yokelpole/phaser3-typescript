@@ -1,22 +1,14 @@
-import * as uuidv4 from "uuid/v4";
 import { MainScene } from "../scenes/mainScene";
+import { BaseObject } from "./baseObjectAttributes";
+import { Player } from "./player";
 
-export class Sword extends Phaser.Physics.Arcade.Sprite {
-  public id: string = uuidv4();
-  public parentId: string;
+export class Sword extends BaseObject {
   public scene: MainScene;
-  public type: string = 'sword';
-  public status: string; // TODO: Implement this.
-  public timestamp: number = Math.floor(Date.now() / 1000);
+  public player: Player;
 
-  constructor(params) {
-    super(params.scene, params.x, params.y, "sword");
+  constructor({ scene, x, y, parentId, id }) {
+    super({ scene, x, y, key: "sword", id, parentId, type: "sword" });
 
-    if (params.id) this.id = params.id;
-    this.scene.add.existing(this);
-    this.scene.physics.add.existing(this);
-
-    this.parentId = params.parentId;
     this.scene.tweens.add({
       targets: this,
       duration: 200,
@@ -24,6 +16,19 @@ export class Sword extends Phaser.Physics.Arcade.Sprite {
     });
 
     this.scene.webSocketManager.addSprite(this);
+
+    // TODO: This will probably need to be outside of this class -
+    // feels like more of a game state management concern.
+    this.scene.physics.add.collider(
+      this,
+      this.scene.otherPlayers,
+      (sword: Sword, deadPlayer: Player) => {
+        if (deadPlayer.id === this.parentId) return;
+        this.scene.webSocketManager.addDeadSprite(deadPlayer);
+        this.scene.webSocketManager.addDeadSprite(sword);
+        deadPlayer.destroy();
+      }
+    );
 
     setTimeout(() => {
       this.scene.webSocketManager.addDeadSprite(this);

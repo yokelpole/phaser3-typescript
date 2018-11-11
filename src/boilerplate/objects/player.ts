@@ -1,7 +1,7 @@
-import * as uuidv4 from "uuid/v4";
 import * as _ from "lodash";
 import { MainScene } from "../scenes/mainScene";
 import { Sword } from "./sword";
+import { BaseObject } from "./baseObjectAttributes";
 
 interface ConstructorParams {
   scene: MainScene;
@@ -13,34 +13,79 @@ interface ConstructorParams {
   type: string;
 }
 
-export class Player extends Phaser.Physics.Arcade.Sprite {
-  public id: string = uuidv4();
+const playerTypes = [
+  "fighter",
+  "thief",
+  "black-belt",
+  "red-mage",
+  "white-mage",
+  "black-mage"
+];
+
+export function createNewRandomPlayer(scene: MainScene) {
+  return new Player({
+    scene,
+    x: _.random(_.toNumber(scene.sys.game.config.width)),
+    y: _.random(_.toNumber(scene.sys.game.config.height)),
+    key: "characters",
+    type: _.sample(playerTypes),
+    isPlayer: true
+  });
+}
+
+export function generateAnimationFrames(scene: MainScene) {
+  _.each(playerTypes, (characterType: string, x: number) => {
+    scene.anims.create({
+      key: `${characterType}-down`,
+      frames: scene.anims.generateFrameNumbers("characters", {
+        start: 0 + x * 27,
+        end: 1 + x * 27
+      }),
+      frameRate: 10
+    });
+    scene.anims.create({
+      key: `${characterType}-up`,
+      frames: scene.anims.generateFrameNumbers("characters", {
+        start: 2 + x * 27,
+        end: 3 + x * 27
+      }),
+      frameRate: 10
+    });
+    scene.anims.create({
+      key: `${characterType}-right`,
+      frames: scene.anims.generateFrameNumbers("characters", {
+        start: 4 + x * 27,
+        end: 5 + x * 27
+      }),
+      frameRate: 10
+    });
+    scene.anims.create({
+      key: `${characterType}-left`,
+      frames: scene.anims.generateFrameNumbers("characters", {
+        start: 6 + x * 27,
+        end: 7 + x * 27
+      }),
+      frameRate: 10
+    });
+  });
+}
+
+export class Player extends BaseObject {
   public sword: Sword;
   public hasMoved: boolean = true;
-  public type: string;
-  public status: string; // TODO: Implement this.
-  public scene: MainScene;
-  public timestamp: number = Math.floor(Date.now() / 1000);
-
   private cursorKeys: CursorKeys;
   private sKey: Phaser.Input.Keyboard.Key;
 
   constructor({ scene, x, y, key, id, isPlayer, type }: ConstructorParams) {
-    super(scene, x, y, key);
+    super({ scene, x, y, key, id, type });
 
     if (isPlayer) {
       this.cursorKeys = scene.input.keyboard.createCursorKeys();
       this.sKey = scene.input.keyboard.addKey("S");
     }
 
-    // TODO: Might be able to not have to pass `type` as a param.
-    this.type = type;
     this.anims.play(`${this.type}-down`);
     this.setDepth(5);
-    this.id = id || uuidv4();
-
-    this.scene.add.existing(this);
-    this.scene.physics.add.existing(this);
   }
 
   update(): void {
@@ -88,7 +133,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       parentId: this.id
     });
 
-    this.positionSword()
+    this.positionSword();
   }
 
   positionSword() {
@@ -110,5 +155,24 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.sword.toggleFlipY();
       this.sword.toggleFlipX();
     }
+  }
+
+  handlePlayerCollision(): void {
+    if (this.anims.getCurrentKey() === `${this.type}-down`) this.y -= 4;
+    if (this.anims.getCurrentKey() === `${this.type}-up`) this.y += 4;
+    if (this.anims.getCurrentKey() === `${this.type}-left`) this.x += 4;
+    if (this.anims.getCurrentKey() === `${this.type}-right`) this.x -= 4;
+  }
+
+  updatePlayerRemotely(x: number, y: number): void {
+    if (this.x < x) this.anims.play(`${this.type}-right`, true);
+    else if (this.x > x) this.anims.play(`${this.type}-left`, true);
+    else if (this.y < y) this.anims.play(`${this.type}-down`, true);
+    else if (this.y > y) this.anims.play(`${this.type}-up`, true);
+
+    this.x = x;
+    this.y = y;
+
+    if (this.sword) this.positionSword();
   }
 }
