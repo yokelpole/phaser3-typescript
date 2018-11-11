@@ -30,7 +30,8 @@ export class MainScene extends Phaser.Scene {
     Player.generateAnimationFrames(this);
     this.player = Player.createNewRandomPlayer(this);
     this.webSocketManager = new WebSocketManager({
-      address: "ws://localhost:8090/ws", // "wss://ancient-dawn-33329.herokuapp.com/ws", // ws://localhost:8090/ws
+      address:
+        /*"ws://localhost:8090/ws",*/ "wss://ancient-dawn-33329.herokuapp.com/ws",
       scene: this
     });
   }
