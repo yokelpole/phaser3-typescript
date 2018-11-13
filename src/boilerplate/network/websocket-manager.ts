@@ -7,6 +7,16 @@ interface ConstructorParams {
   scene: MainScene;
 }
 
+interface ResponseObject {
+  id: string;
+  parentId?: string;
+  x: number;
+  y: number;
+  health: number;
+  type: string;
+  timestamp: number;
+}
+
 export class WebSocketManager {
   private scene: MainScene;
   private websocket: WebSocket;
@@ -18,7 +28,8 @@ export class WebSocketManager {
     "x",
     "y",
     "timestamp",
-    "parentId"
+    "parentId",
+    "health"
   ];
 
   constructor({ address, scene }: ConstructorParams) {
@@ -27,6 +38,10 @@ export class WebSocketManager {
     this.websocket.onopen = () =>
       this.websocket.send([this.getPlayerJSONString()].toString());
     this.websocket.onmessage = message => this.handleMessage(message);
+    this.websocket.onclose = message => {
+      console.log("### WEBSOCKET CLOSED");
+      console.log(message);
+    }
   }
 
   sendMessage() {
@@ -66,36 +81,34 @@ export class WebSocketManager {
     }
 
     // TODO: Scene should probably handle a bunch of this.
-    // TODO: Obj should be typed.
-    _.each(resp.objects, obj => {
+    _.each(resp.objects, (obj: ResponseObject) => {
       if (obj.id === this.scene.player.id) {
-        if (obj.type !== "dead") return;
+        // TODO: Helper method to deal w/ health on response objects?
+        if (obj.health > 0) return;
 
         this.scene.player.destroy();
         this.scene.player = createNewRandomPlayer(this.scene);
         return;
       }
 
-      if (_.includes(_.map(this.scene.otherPlayers, "id"), obj.id)) {
-        const player = this.scene.otherPlayers.find(
-          player => player.id === obj.id
-        );
-        if (!player) return;
-        if (obj.type === "dead") {
-          player.destroy();
+      const otherPlayer = this.scene.otherPlayers[obj.id];
+      if (otherPlayer) {
+        if (obj.health <= 0) {
+          otherPlayer.destroy();
+          this.scene.otherPlayers[obj.id] = undefined;
           return;
         }
 
-        player.updatePlayerRemotely(obj.x, obj.y);
+        otherPlayer.updatePlayerRemotely(obj.x, obj.y);
       } else if (obj.type === "sword") {
-        const player = this.scene.otherPlayers.find(
-          player => player.id === obj.parentId
-        );
+        if (obj.health <= 0) return;
+
+        const player = _.first(_.filter(this.scene.otherPlayers, { id: obj.parentId }));
         if (!player) return;
         
         player.addSword(obj.id);
       } else {
-        if (obj.type === "dead") return;
+        if (obj.health <= 0) return;
 
         const newPlayer = new Player({
           scene: this.scene,
@@ -107,7 +120,7 @@ export class WebSocketManager {
           isPlayer: false
         });
 
-        this.scene.otherPlayers.push(newPlayer);
+        this.scene.otherPlayers[newPlayer.id] = newPlayer;
         this.scene.physics.add.collider(
           this.scene.player,
           newPlayer,
@@ -123,9 +136,5 @@ export class WebSocketManager {
 
   addSprite(sprite: Phaser.Physics.Arcade.Sprite) {
     this.queuedSprites.push(sprite);
-  }
-
-  addDeadSprite(deadSprite: Phaser.Physics.Arcade.Sprite) {
-    this.queuedSprites.push(_.extend({}, deadSprite, { type: "dead" }));
   }
 }

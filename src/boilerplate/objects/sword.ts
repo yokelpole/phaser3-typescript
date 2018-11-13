@@ -1,3 +1,4 @@
+import * as _ from "lodash";
 import { MainScene } from "../scenes/mainScene";
 import { BaseObject } from "./baseObjectAttributes";
 import { Player } from "./player";
@@ -5,6 +6,7 @@ import { Player } from "./player";
 export class Sword extends BaseObject {
   public scene: MainScene;
   public player: Player;
+  private destroyTimeout;
 
   constructor({ scene, x, y, parentId, id }) {
     super({ scene, x, y, key: "sword", id, parentId, type: "sword" });
@@ -21,18 +23,25 @@ export class Sword extends BaseObject {
     // feels like more of a game state management concern.
     this.scene.physics.add.collider(
       this,
-      this.scene.otherPlayers,
-      (sword: Sword, deadPlayer: Player) => {
-        if (deadPlayer.id === this.parentId) return;
-        this.scene.webSocketManager.addDeadSprite(deadPlayer);
-        this.scene.webSocketManager.addDeadSprite(sword);
-        deadPlayer.destroy();
+      _.map(this.scene.otherPlayers),
+      (sword: Sword, player: Player) => {
+        if (player.id === this.parentId) return;
+
+        sword.makeDead();
+        player.makeDead();
+
+        this.scene.webSocketManager.addSprite(player);
+        this.scene.webSocketManager.addSprite(sword);
+
+        sword.destroy();
+        player.destroy();
+        clearTimeout(this.destroyTimeout);
       }
     );
 
-    setTimeout(() => {
-      this.scene.webSocketManager.addDeadSprite(this);
-      this.type = "dead";
+    this.destroyTimeout = setTimeout(() => {
+      this.makeDead();
+      this.scene.webSocketManager.addSprite(this);
       this.destroy();
     }, 200);
   }

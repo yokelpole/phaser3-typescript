@@ -8,7 +8,7 @@ import { WebSocketManager } from "../network/websocket-manager";
 export class MainScene extends Phaser.Scene {
   public webSocketManager: WebSocketManager;
   public player: Player.Player;
-  public otherPlayers: Player.Player[] = [];
+  public otherPlayers: Record<string, Player.Player> = {};
 
   constructor() {
     super({ key: "MainScene" });
@@ -31,7 +31,9 @@ export class MainScene extends Phaser.Scene {
     this.player = Player.createNewRandomPlayer(this);
     this.webSocketManager = new WebSocketManager({
       address:
-        /*"ws://localhost:8090/ws",*/ "wss://ancient-dawn-33329.herokuapp.com/ws",
+        window.location.hostname === "localhost"
+          ? "ws://localhost:8090/ws"
+          : "wss://ancient-dawn-33329.herokuapp.com/ws",
       scene: this
     });
   }
