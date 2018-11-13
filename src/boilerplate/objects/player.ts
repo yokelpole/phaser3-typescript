@@ -35,35 +35,37 @@ export function createNewRandomPlayer(scene: MainScene) {
 
 export function generateAnimationFrames(scene: MainScene) {
   _.each(playerTypes, (characterType: string, x: number) => {
+    const startFrame = x * 8;
+
     scene.anims.create({
       key: `${characterType}-down`,
       frames: scene.anims.generateFrameNumbers("characters", {
-        start: 0 + x * 27,
-        end: 1 + x * 27
+        start: startFrame + 0,
+        end: startFrame + 1
       }),
       frameRate: 10
     });
     scene.anims.create({
       key: `${characterType}-up`,
       frames: scene.anims.generateFrameNumbers("characters", {
-        start: 2 + x * 27,
-        end: 3 + x * 27
+        start: startFrame + 2,
+        end: startFrame + 3
       }),
       frameRate: 10
     });
     scene.anims.create({
       key: `${characterType}-right`,
       frames: scene.anims.generateFrameNumbers("characters", {
-        start: 4 + x * 27,
-        end: 5 + x * 27
+        start: startFrame + 4,
+        end: startFrame + 5
       }),
       frameRate: 10
     });
     scene.anims.create({
       key: `${characterType}-left`,
       frames: scene.anims.generateFrameNumbers("characters", {
-        start: 6 + x * 27,
-        end: 7 + x * 27
+        start: startFrame + 6,
+        end: startFrame + 7
       }),
       frameRate: 10
     });

@@ -18,7 +18,7 @@ export class MainScene extends Phaser.Scene {
     this.load.image("sword", "./assets/boilerplate/sword.png");
     this.load.spritesheet(
       "characters",
-      "./assets/boilerplate/ff1characters-trans.png",
+      "./assets/boilerplate/characters.png",
       {
         frameWidth: 36,
         frameHeight: 36
