@@ -1,19 +1,17 @@
 import * as _ from "lodash";
 import { MainScene } from "../scenes/mainScene";
-import { Sword } from "./sword";
-import { BaseObject } from "./baseObjectAttributes";
+import { BaseObject } from "./baseObject";
 
 interface ConstructorParams {
   scene: MainScene;
   x: integer;
   y: integer;
-  key: string;
   id?: string;
   isPlayer: boolean;
-  type: string;
+  type?: string; // TODO: This can be removed once all players are repesented by classes.
 }
 
-const playerTypes = [
+export const playerTypes = [
   "fighter",
   "thief",
   "black-belt",
@@ -21,17 +19,6 @@ const playerTypes = [
   "white-mage",
   "black-mage"
 ];
-
-export function createNewRandomPlayer(scene: MainScene) {
-  return new Player({
-    scene,
-    x: _.random(_.toNumber(scene.sys.game.config.width)),
-    y: _.random(_.toNumber(scene.sys.game.config.height)),
-    key: "characters",
-    type: _.sample(playerTypes),
-    isPlayer: true
-  });
-}
 
 export function generateAnimationFrames(scene: MainScene) {
   _.each(playerTypes, (characterType: string, x: number) => {
@@ -73,13 +60,13 @@ export function generateAnimationFrames(scene: MainScene) {
 }
 
 export class Player extends BaseObject {
-  public sword: Sword;
   public hasMoved: boolean = true;
-  private cursorKeys: CursorKeys;
-  private sKey: Phaser.Input.Keyboard.Key;
+  public moveRate: number = 4;
+  protected cursorKeys: CursorKeys;
+  protected sKey: Phaser.Input.Keyboard.Key;
 
-  constructor({ scene, x, y, key, id, isPlayer, type }: ConstructorParams) {
-    super({ scene, x, y, key, id, type });
+  constructor({ scene, x, y, id, isPlayer, type }: ConstructorParams) {
+    super({ scene, x, y, key: 'characters', id, type });
 
     if (isPlayer) {
       this.cursorKeys = scene.input.keyboard.createCursorKeys();
@@ -101,61 +88,17 @@ export class Player extends BaseObject {
     }
 
     if (this.cursorKeys.left.isDown) {
-      this.x -= 4;
-      if (this.sword) this.sword.x -= 4;
+      this.x -= this.moveRate;
       this.anims.play(`${this.type}-left`, true);
     } else if (this.cursorKeys.right.isDown) {
-      this.x += 4;
-      if (this.sword) this.sword.x += 4;
+      this.x += this.moveRate;
       this.anims.play(`${this.type}-right`, true);
     } else if (this.cursorKeys.up.isDown) {
-      this.y -= 4;
-      if (this.sword) this.sword.y -= 4;
+      this.y -= this.moveRate;
       this.anims.play(`${this.type}-up`, true);
     } else if (this.cursorKeys.down.isDown) {
-      this.y += 4;
-      if (this.sword) this.sword.y += 4;
+      this.y += this.moveRate;
       this.anims.play(`${this.type}-down`, true);
-    }
-
-    if (this.sKey.isDown) this.addSword();
-  }
-
-  addSword(id: string = undefined) {
-    // TODO: We shouldn't be destroying and making the sword each time.
-    if (this.sword && this.sword.active) return;
-    if (this.sword && this.sword.id === id) return;
-    if (this.sword && !this.sword.active) this.sword = null;
-
-    this.sword = new Sword({
-      id,
-      scene: this.scene,
-      x: this.x,
-      y: this.y,
-      parentId: this.id
-    });
-
-    this.positionSword();
-  }
-
-  positionSword() {
-    if (!this.sword) return;
-
-    this.sword.resetFlip();
-
-    if (this.anims.getCurrentKey() === `${this.type}-down`) {
-      this.sword.y = this.y + 16;
-      this.sword.toggleFlipY();
-      if (this.sword.scene) this.sword.setDepth(6); // Sword needs to be on top of fighter.
-    } else if (this.anims.getCurrentKey() === `${this.type}-up`) {
-      this.sword.y = this.y - 16;
-      this.sword.toggleFlipX();
-    } else if (this.anims.getCurrentKey() === `${this.type}-left`) {
-      this.sword.x = this.x - 16;
-    } else if (this.anims.getCurrentKey() === `${this.type}-right`) {
-      this.sword.x = this.x + 16;
-      this.sword.toggleFlipY();
-      this.sword.toggleFlipX();
     }
   }
 
@@ -174,7 +117,5 @@ export class Player extends BaseObject {
 
     this.x = x;
     this.y = y;
-
-    if (this.sword) this.positionSword();
   }
 }

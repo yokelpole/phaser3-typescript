@@ -1,6 +1,28 @@
 import * as Player from "../objects/player";
+import { Fighter } from "../objects/fighter";
 import * as _ from "lodash";
 import { WebSocketManager } from "../network/websocket-manager";
+
+export function createNewRandomPlayer(scene: MainScene) {
+  const type = _.sample(Player.playerTypes);
+  
+  if (type === "fighter") {
+    return new Fighter({
+      scene,
+      x: _.random(_.toNumber(scene.sys.game.config.width)),
+      y: _.random(_.toNumber(scene.sys.game.config.height)),
+      isPlayer: true
+    });
+  }
+
+  return new Player.Player({
+    scene,
+    x: _.random(_.toNumber(scene.sys.game.config.width)),
+    y: _.random(_.toNumber(scene.sys.game.config.height)),
+    type,
+    isPlayer: true
+  });
+}
 
 // TODO: Need to have some kind of game manager to track the player
 // types and all of that jazz.
@@ -28,7 +50,7 @@ export class MainScene extends Phaser.Scene {
 
   create(): void {
     Player.generateAnimationFrames(this);
-    this.player = Player.createNewRandomPlayer(this);
+    this.player = createNewRandomPlayer(this);
     this.webSocketManager = new WebSocketManager({
       address:
         window.location.hostname === "localhost"

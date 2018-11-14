@@ -1,6 +1,7 @@
 import * as _ from "lodash";
-import { Player, createNewRandomPlayer } from "../objects/player";
-import { MainScene } from "../scenes/mainScene";
+import { Player } from "../objects/player";
+import { MainScene, createNewRandomPlayer } from "../scenes/mainScene";
+import { Fighter } from "../objects/fighter";
 
 interface ConstructorParams {
   address: string;
@@ -41,7 +42,7 @@ export class WebSocketManager {
     this.websocket.onclose = message => {
       console.log("### WEBSOCKET CLOSED");
       console.log(message);
-    }
+    };
   }
 
   sendMessage() {
@@ -103,22 +104,34 @@ export class WebSocketManager {
       } else if (obj.type === "sword") {
         if (obj.health <= 0) return;
 
-        const player = _.first(_.filter(this.scene.otherPlayers, { id: obj.parentId }));
+        const player = _.first(
+          _.filter(this.scene.otherPlayers, { id: obj.parentId })
+        );
         if (!player) return;
-        
-        player.addSword(obj.id);
+
+        if (player instanceof Fighter) player.addSword(obj.id);
       } else {
         if (obj.health <= 0) return;
 
-        const newPlayer = new Player({
-          scene: this.scene,
-          id: obj.id,
-          x: obj.x,
-          y: obj.y,
-          key: "characters",
-          type: obj.type,
-          isPlayer: false
-        });
+        let newPlayer;
+        if (obj.type === "fighter") {
+          newPlayer = new Fighter({
+            scene: this.scene,
+            id: obj.id,
+            x: obj.x,
+            y: obj.y,
+            isPlayer: false,
+          })
+        } else {
+          newPlayer = new Player({
+            scene: this.scene,
+            id: obj.id,
+            x: obj.x,
+            y: obj.y,
+            type: obj.type,
+            isPlayer: false
+          });
+        }
 
         this.scene.otherPlayers[newPlayer.id] = newPlayer;
         this.scene.physics.add.collider(

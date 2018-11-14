@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import { MainScene } from "../scenes/mainScene";
-import { BaseObject } from "./baseObjectAttributes";
+import { BaseObject } from "./baseObject";
 import { Player } from "./player";
 
 export class Sword extends BaseObject {
