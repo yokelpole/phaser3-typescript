@@ -1,10 +1,8 @@
 import * as _ from "lodash";
-import { MainScene } from "../scenes/mainScene";
 import { BaseObject } from "./baseObject";
 import { Player } from "./player";
 
 export class Sword extends BaseObject {
-  public scene: MainScene;
   public player: Player;
   private destroyTimeout;
 

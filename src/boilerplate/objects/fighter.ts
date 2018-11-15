@@ -3,7 +3,7 @@ import { Sword } from "./sword";
 
 export class Fighter extends Player {
   public type: string = "fighter";
-  public sword: Sword;
+  public weapon: Sword;
 
   constructor(params) {
     super({ ...params, type: "fighter" });
@@ -12,23 +12,26 @@ export class Fighter extends Player {
   update(): void {
     super.update();
 
-    if (this.sword) {
-      if (this.cursorKeys.left.isDown) this.sword.x -= this.moveRate;
-      if (this.cursorKeys.right.isDown) this.sword.x += this.moveRate;
-      if (this.cursorKeys.up.isDown) this.sword.y -= this.moveRate;
-      if (this.cursorKeys.down.isDown) this.sword.y += this.moveRate;
+    if (this.weapon) {
+      if (this.cursorKeys.left.isDown) this.weapon.x -= this.moveRate;
+      if (this.cursorKeys.right.isDown) this.weapon.x += this.moveRate;
+      if (this.cursorKeys.up.isDown) this.weapon.y -= this.moveRate;
+      if (this.cursorKeys.down.isDown) this.weapon.y += this.moveRate;
     }
 
     if (this.sKey.isDown) this.addSword();
   }
 
+  // TODO: Making this addWeapon might make it work better between classes.
   addSword(id: string = undefined): void {
     // TODO: We shouldn't be destroying and making the sword each time.
-    if (this.sword && this.sword.active) return;
-    if (this.sword && this.sword.id === id) return;
-    if (this.sword && !this.sword.active) this.sword = null;
+    if (this.weapon) {
+      if (this.weapon.active) return;
+      if (this.weapon.id === id) return;
+      if (!this.weapon.active) this.weapon = null;
+    }
 
-    this.sword = new Sword({
+    this.weapon = new Sword({
       id,
       scene: this.scene,
       x: this.x,
@@ -40,28 +43,28 @@ export class Fighter extends Player {
   }
 
   positionSword(): void {
-    if (!this.sword) return;
+    if (!this.weapon) return;
 
-    this.sword.resetFlip();
+    this.weapon.resetFlip();
 
     if (this.anims.getCurrentKey() === `${this.type}-down`) {
-      this.sword.y = this.y + 16;
-      this.sword.toggleFlipY();
-      if (this.sword.scene) this.sword.setDepth(6); // Sword needs to be on top of fighter.
+      this.weapon.y = this.y + 16;
+      this.weapon.toggleFlipY();
+      if (this.weapon.scene) this.weapon.setDepth(6); // Sword needs to be on top of fighter.
     } else if (this.anims.getCurrentKey() === `${this.type}-up`) {
-      this.sword.y = this.y - 16;
-      this.sword.toggleFlipX();
+      this.weapon.y = this.y - 16;
+      this.weapon.toggleFlipX();
     } else if (this.anims.getCurrentKey() === `${this.type}-left`) {
-      this.sword.x = this.x - 16;
+      this.weapon.x = this.x - 16;
     } else if (this.anims.getCurrentKey() === `${this.type}-right`) {
-      this.sword.x = this.x + 16;
-      this.sword.toggleFlipY();
-      this.sword.toggleFlipX();
+      this.weapon.x = this.x + 16;
+      this.weapon.toggleFlipY();
+      this.weapon.toggleFlipX();
     }
   }
 
   updatePlayerRemotely(x: number, y: number): void {
     super.updatePlayerRemotely(x, y);
-    if (this.sword) this.positionSword();
+    if (this.weapon) this.positionSword();
   }
 }

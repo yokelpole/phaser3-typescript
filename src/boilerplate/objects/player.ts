@@ -66,7 +66,7 @@ export class Player extends BaseObject {
   protected sKey: Phaser.Input.Keyboard.Key;
 
   constructor({ scene, x, y, id, isPlayer, type }: ConstructorParams) {
-    super({ scene, x, y, key: 'characters', id, type });
+    super({ scene, x, y, key: "characters", id, type });
 
     if (isPlayer) {
       this.cursorKeys = scene.input.keyboard.createCursorKeys();

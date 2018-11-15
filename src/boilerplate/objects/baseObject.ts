@@ -18,6 +18,7 @@ export class BaseObject extends Phaser.Physics.Arcade.Sprite {
   public type: string; // TODO: Should this be handled by the classes?
   public health: number = 100;
   public timestamp: number = Math.floor(Date.now() / 1000);
+  public scene: MainScene;
 
   constructor({
     scene,
