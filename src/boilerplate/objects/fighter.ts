@@ -24,7 +24,7 @@ export class Fighter extends Player {
 
   // TODO: Making this addWeapon might make it work better between classes.
   addSword(id: string = undefined): void {
-    // TODO: We shouldn't be destroying and making the sword each time.
+    // TODO: This is shared among the add classes.
     if (this.weapon) {
       if (this.weapon.active) return;
       if (this.weapon.id === id) return;

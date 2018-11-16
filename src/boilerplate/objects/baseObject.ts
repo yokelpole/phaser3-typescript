@@ -20,16 +20,7 @@ export class BaseObject extends Phaser.Physics.Arcade.Sprite {
   public timestamp: number = Math.floor(Date.now() / 1000);
   public scene: MainScene;
 
-  constructor({
-    scene,
-    x,
-    y,
-    key,
-    id,
-    parentId,
-    type,
-    health
-  }: ConstructorParams) {
+  constructor({ scene, x, y, key, id, parentId, type, health }: ConstructorParams) {
     super(scene, x, y, key);
 
     if (id) this.id = id;

@@ -1,7 +1,8 @@
 import * as _ from "lodash";
-import { Player } from "../objects/player";
+import { Player, PlayerTypes } from "../objects/player";
 import { MainScene, createNewRandomPlayer } from "../scenes/mainScene";
 import { Fighter } from "../objects/fighter";
+import { BlackMage } from "../objects/blackMage";
 
 interface ConstructorParams {
   address: string;
@@ -23,21 +24,12 @@ export class WebSocketManager {
   private websocket: WebSocket;
   private sendLock: boolean;
   private queuedSprites: Phaser.Physics.Arcade.Sprite[] = [];
-  private baseAttributes: string[] = [
-    "id",
-    "type",
-    "x",
-    "y",
-    "timestamp",
-    "parentId",
-    "health"
-  ];
+  private baseAttributes: string[] = ["id", "type", "x", "y", "timestamp", "parentId", "health"];
 
   constructor({ address, scene }: ConstructorParams) {
     this.scene = scene;
     this.websocket = new WebSocket(address);
-    this.websocket.onopen = () =>
-      this.websocket.send([this.getPlayerJSONString()].toString());
+    this.websocket.onopen = () => this.websocket.send([this.getPlayerJSONString()].toString());
     this.websocket.onmessage = message => this.handleMessage(message);
     this.websocket.onclose = message => {
       console.log("### WEBSOCKET CLOSED");
@@ -54,6 +46,12 @@ export class WebSocketManager {
     if (this.scene.player.hasMoved) {
       messages.push(this.getPlayerJSONString());
       this.scene.player.hasMoved = false;
+    }
+
+    // TODO: Make this more generalized for the player's weapon
+    if (this.scene.player instanceof BlackMage) {
+      if (this.scene.player.weapon && this.scene.player.weapon.active)
+        messages.push(JSON.stringify(_.pick(this.scene.player.weapon, this.baseAttributes)));
     }
 
     if (!_.isEmpty(this.queuedSprites)) {
@@ -101,37 +99,29 @@ export class WebSocketManager {
         }
 
         otherPlayer.updatePlayerRemotely(obj.x, obj.y);
-      } else if (obj.type === "sword") {
+      } else if (obj.type === "sword" || obj.type === "black-magic") {
         if (obj.health <= 0) return;
 
-        const player = _.first(
-          _.filter(this.scene.otherPlayers, { id: obj.parentId })
-        );
+        const player = _.first(_.filter(this.scene.otherPlayers, { id: obj.parentId }));
         if (!player) return;
 
         if (player instanceof Fighter) player.addSword(obj.id);
-      } else {
+        if (player instanceof BlackMage) player.addMagic(obj.id);
+      } else if (_.includes(PlayerTypes, obj.type)) {
         if (obj.health <= 0) return;
 
         let newPlayer;
-        if (obj.type === "fighter") {
-          newPlayer = new Fighter({
-            scene: this.scene,
-            id: obj.id,
-            x: obj.x,
-            y: obj.y,
-            isPlayer: false,
-          })
-        } else {
-          newPlayer = new Player({
-            scene: this.scene,
-            id: obj.id,
-            x: obj.x,
-            y: obj.y,
-            type: obj.type,
-            isPlayer: false
-          });
-        }
+        const options = {
+          scene: this.scene,
+          id: obj.id,
+          x: obj.x,
+          y: obj.y,
+          isPlayer: false
+        };
+        
+        if (obj.type === "fighter") newPlayer = new Fighter(options);
+        else if (obj.type === "black-mage") newPlayer = new BlackMage(options);
+        else newPlayer = new Player({ ...options, type: obj.type });
 
         this.scene.otherPlayers[newPlayer.id] = newPlayer;
         this.scene.physics.add.collider(

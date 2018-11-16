@@ -11,7 +11,9 @@ interface ConstructorParams {
   type?: string; // TODO: This can be removed once all players are repesented by classes.
 }
 
-export const playerTypes = [
+export enum Direction { "up", "right", "down", "left" };
+
+export const PlayerTypes = [
   "fighter",
   "thief",
   "black-belt",
@@ -21,7 +23,7 @@ export const playerTypes = [
 ];
 
 export function generateAnimationFrames(scene: MainScene) {
-  _.each(playerTypes, (characterType: string, x: number) => {
+  _.each(PlayerTypes, (characterType: string, x: number) => {
     const startFrame = x * 8;
 
     scene.anims.create({
@@ -102,11 +104,20 @@ export class Player extends BaseObject {
     }
   }
 
+  getDirection(): Direction {
+    if (this.anims.getCurrentKey() === `${this.type}-down`) return Direction.down;
+    if (this.anims.getCurrentKey() === `${this.type}-up`) return Direction.up;
+    if (this.anims.getCurrentKey() === `${this.type}-left`) return Direction.left;
+    if (this.anims.getCurrentKey() === `${this.type}-right`) return Direction.right;
+  }
+
   handlePlayerCollision(): void {
-    if (this.anims.getCurrentKey() === `${this.type}-down`) this.y -= 4;
-    if (this.anims.getCurrentKey() === `${this.type}-up`) this.y += 4;
-    if (this.anims.getCurrentKey() === `${this.type}-left`) this.x += 4;
-    if (this.anims.getCurrentKey() === `${this.type}-right`) this.x -= 4;
+    const direction = this.getDirection();
+    
+    if (direction === Direction.down) this.y -= 4;
+    if (direction === Direction.up) this.y += 4;
+    if (direction === Direction.left) this.x += 4;
+    if (direction === Direction.right) this.x -= 4;
   }
 
   updatePlayerRemotely(x: number, y: number): void {

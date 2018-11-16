@@ -7,7 +7,7 @@ import { BlackMage } from "../objects/blackMage";
 // TODO: this shouldn't be here, but it doesn't behave well in
 // Player because of how it references a subclass of it.
 export function createNewRandomPlayer(scene: MainScene) {
-  const type = _.sample(Player.playerTypes);
+  const type = _.sample(Player.PlayerTypes);
 
   if (type === "fighter") {
     return new Fighter({
@@ -16,7 +16,7 @@ export function createNewRandomPlayer(scene: MainScene) {
       y: _.random(_.toNumber(scene.sys.game.config.height)),
       isPlayer: true
     });
-  } else /*if (type === "black-mage")*/ {
+  } /*if (type === "black-mage")*/ else {
     return new BlackMage({
       scene,
       x: _.random(_.toNumber(scene.sys.game.config.width)),
@@ -48,14 +48,10 @@ export class MainScene extends Phaser.Scene {
 
   preload(): void {
     // Fire art is from https://opengameart.org/content/9-frame-fire-animation-16x-32x-64x
-    this.load.spritesheet(
-      "black-magic",
-      "./assets/boilerplate/black-magic.png",
-      {
-        frameWidth: 32,
-        frameHeight: 32
-      }
-    );
+    this.load.spritesheet("black-magic", "./assets/boilerplate/black-magic.png", {
+      frameWidth: 32,
+      frameHeight: 32
+    });
     this.load.image("sword", "./assets/boilerplate/sword.png");
     this.load.spritesheet("characters", "./assets/boilerplate/characters.png", {
       frameWidth: 36,
