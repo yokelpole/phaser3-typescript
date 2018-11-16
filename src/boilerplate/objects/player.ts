@@ -66,6 +66,7 @@ export class Player extends BaseObject {
   public moveRate: number = 4;
   protected cursorKeys: CursorKeys;
   protected sKey: Phaser.Input.Keyboard.Key;
+  protected weapon: Phaser.Physics.Arcade.Sprite;
 
   constructor({ scene, x, y, id, isPlayer, type }: ConstructorParams) {
     super({ scene, x, y, key: "characters", id, type });
@@ -111,9 +112,23 @@ export class Player extends BaseObject {
     if (this.anims.getCurrentKey() === `${this.type}-right`) return Direction.right;
   }
 
+  flipWeapon(): void {
+    if (!this.weapon) return;
+
+    this.weapon.resetFlip();
+    const direction = this.getDirection();
+
+    if (direction === Direction.down) this.weapon.toggleFlipY();
+    if (direction === Direction.up) this.weapon.toggleFlipX();
+    if (direction === Direction.right) {
+      this.weapon.toggleFlipX();
+      this.weapon.toggleFlipY();
+    }
+  }
+
   handlePlayerCollision(): void {
     const direction = this.getDirection();
-    
+
     if (direction === Direction.down) this.y -= 4;
     if (direction === Direction.up) this.y += 4;
     if (direction === Direction.left) this.x += 4;

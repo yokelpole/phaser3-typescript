@@ -50,7 +50,7 @@ export class BlackMagic extends BaseObject {
   }
 
   update() {
-    
+
   }
 }
 
@@ -83,5 +83,7 @@ export class BlackMage extends Player {
       x: this.x,
       y: this.y
     });
+
+    this.flipWeapon();
   }
 }

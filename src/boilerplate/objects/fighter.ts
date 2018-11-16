@@ -45,21 +45,17 @@ export class Fighter extends Player {
   positionSword(): void {
     if (!this.weapon) return;
 
-    this.weapon.resetFlip();
+    this.flipWeapon();
 
     if (this.anims.getCurrentKey() === `${this.type}-down`) {
       this.weapon.y = this.y + 16;
-      this.weapon.toggleFlipY();
       if (this.weapon.scene) this.weapon.setDepth(6); // Sword needs to be on top of fighter.
     } else if (this.anims.getCurrentKey() === `${this.type}-up`) {
       this.weapon.y = this.y - 16;
-      this.weapon.toggleFlipX();
     } else if (this.anims.getCurrentKey() === `${this.type}-left`) {
       this.weapon.x = this.x - 16;
     } else if (this.anims.getCurrentKey() === `${this.type}-right`) {
       this.weapon.x = this.x + 16;
-      this.weapon.toggleFlipY();
-      this.weapon.toggleFlipX();
     }
   }
 
