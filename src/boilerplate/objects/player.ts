@@ -1,6 +1,7 @@
 import * as _ from "lodash";
 import { MainScene } from "../scenes/mainScene";
 import { BaseObject } from "./baseObject";
+import { Weapon } from "./weapon";
 
 interface ConstructorParams {
   scene: MainScene;
@@ -11,7 +12,12 @@ interface ConstructorParams {
   type?: string; // TODO: This can be removed once all players are repesented by classes.
 }
 
-export enum Direction { "up", "right", "down", "left" };
+export enum Direction {
+  "up",
+  "right",
+  "down",
+  "left"
+}
 
 export const PlayerTypes = [
   "fighter",
@@ -66,7 +72,7 @@ export class Player extends BaseObject {
   public moveRate: number = 4;
   protected cursorKeys: CursorKeys;
   protected sKey: Phaser.Input.Keyboard.Key;
-  protected weapon: Phaser.Physics.Arcade.Sprite;
+  protected weapon: Weapon;
 
   constructor({ scene, x, y, id, isPlayer, type }: ConstructorParams) {
     super({ scene, x, y, key: "characters", id, type });
@@ -103,6 +109,13 @@ export class Player extends BaseObject {
       this.y += this.moveRate;
       this.anims.play(`${this.type}-down`, true);
     }
+
+    if (this.sKey.isDown) this.addWeapon();
+  }
+
+  // To be extended by other classes.
+  addWeapon(id: string = undefined): void {
+    if (this.weapon && !this.weapon.active) this.weapon = null;
   }
 
   getDirection(): Direction {
@@ -110,20 +123,6 @@ export class Player extends BaseObject {
     if (this.anims.getCurrentKey() === `${this.type}-up`) return Direction.up;
     if (this.anims.getCurrentKey() === `${this.type}-left`) return Direction.left;
     if (this.anims.getCurrentKey() === `${this.type}-right`) return Direction.right;
-  }
-
-  flipWeapon(): void {
-    if (!this.weapon) return;
-
-    this.weapon.resetFlip();
-    const direction = this.getDirection();
-
-    if (direction === Direction.down) this.weapon.toggleFlipY();
-    if (direction === Direction.up) this.weapon.toggleFlipX();
-    if (direction === Direction.right) {
-      this.weapon.toggleFlipX();
-      this.weapon.toggleFlipY();
-    }
   }
 
   handlePlayerCollision(): void {

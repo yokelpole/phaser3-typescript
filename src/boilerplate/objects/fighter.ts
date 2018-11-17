@@ -18,25 +18,22 @@ export class Fighter extends Player {
       if (this.cursorKeys.up.isDown) this.weapon.y -= this.moveRate;
       if (this.cursorKeys.down.isDown) this.weapon.y += this.moveRate;
     }
-
-    if (this.sKey.isDown) this.addSword();
   }
 
-  // TODO: Making this addWeapon might make it work better between classes.
-  addSword(id: string = undefined): void {
-    // TODO: This is shared among the add classes.
+  addWeapon(id: string = undefined): void {
+    super.addWeapon(id);
+    
     if (this.weapon) {
       if (this.weapon.active) return;
       if (this.weapon.id === id) return;
-      if (!this.weapon.active) this.weapon = null;
     }
 
     this.weapon = new Sword({
       id,
       scene: this.scene,
+      player: this,
       x: this.x,
       y: this.y,
-      parentId: this.id
     });
 
     this.positionSword();
@@ -44,8 +41,6 @@ export class Fighter extends Player {
 
   positionSword(): void {
     if (!this.weapon) return;
-
-    this.flipWeapon();
 
     if (this.anims.getCurrentKey() === `${this.type}-down`) {
       this.weapon.y = this.y + 16;

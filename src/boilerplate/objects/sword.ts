@@ -1,24 +1,23 @@
 import * as _ from "lodash";
-import { BaseObject } from "./baseObject";
+import { Weapon } from "./weapon";
 import { Player } from "./player";
 
-export class Sword extends BaseObject {
+export class Sword extends Weapon {
   public player: Player;
-  private destroyTimeout;
+  protected destroyTimeout;
 
-  constructor({ scene, x, y, parentId, id }) {
-    super({ scene, x, y, key: "sword", id, parentId, type: "sword" });
+  constructor({ scene, player, x, y, id }) {
+    super({ scene, player, x, y, key: "sword", id, type: "sword", timeAlive: 200 });
 
     this.scene.tweens.add({
       targets: this,
-      duration: 200,
-      angle: -90
+      duration: this.timeAlive,
+      angle: this.angle + 90
     });
-
-    this.scene.webSocketManager.addSprite(this);
 
     // TODO: This will probably need to be outside of this class -
     // feels like more of a game state management concern.
+    // Might go in weapon class well.
     this.scene.physics.add.collider(
       this,
       _.map(this.scene.otherPlayers),
@@ -36,11 +35,5 @@ export class Sword extends BaseObject {
         clearTimeout(this.destroyTimeout);
       }
     );
-
-    this.destroyTimeout = setTimeout(() => {
-      this.makeDead();
-      this.scene.webSocketManager.addSprite(this);
-      this.destroy();
-    }, 200);
   }
 }

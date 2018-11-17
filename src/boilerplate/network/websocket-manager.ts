@@ -105,8 +105,7 @@ export class WebSocketManager {
         const player = _.first(_.filter(this.scene.otherPlayers, { id: obj.parentId }));
         if (!player) return;
 
-        if (player instanceof Fighter) player.addSword(obj.id);
-        if (player instanceof BlackMage) player.addMagic(obj.id);
+        player.addWeapon(obj.id);
       } else if (_.includes(PlayerTypes, obj.type)) {
         if (obj.health <= 0) return;
 
@@ -119,6 +118,7 @@ export class WebSocketManager {
           isPlayer: false
         };
         
+        // TODO: Instantiate subclasses in parent class?
         if (obj.type === "fighter") newPlayer = new Fighter(options);
         else if (obj.type === "black-mage") newPlayer = new BlackMage(options);
         else newPlayer = new Player({ ...options, type: obj.type });
