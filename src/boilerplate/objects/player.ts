@@ -2,6 +2,7 @@ import * as _ from "lodash";
 import { MainScene } from "../scenes/mainScene";
 import { BaseObject } from "./baseObject";
 import { Weapon } from "./weapon";
+import { ResponseObject } from "../network/websocket-manager";
 
 interface ConstructorParams {
   scene: MainScene;
@@ -70,9 +71,9 @@ export function generateAnimationFrames(scene: MainScene) {
 export class Player extends BaseObject {
   public hasMoved: boolean = true;
   public moveRate: number = 4;
+  public weapon: Weapon;
   protected cursorKeys: CursorKeys;
   protected sKey: Phaser.Input.Keyboard.Key;
-  protected weapon: Weapon;
 
   constructor({ scene, x, y, id, isPlayer, type }: ConstructorParams) {
     super({ scene, x, y, key: "characters", id, type });
@@ -116,6 +117,13 @@ export class Player extends BaseObject {
   // To be extended by other classes.
   addWeapon(id: string = undefined): void {
     if (this.weapon && !this.weapon.active) this.weapon = null;
+  }
+
+  updateWeapon(obj: ResponseObject): void {
+    if (!this.weapon || !this.weapon.active) return;
+
+    this.weapon.x = obj.x;
+    this.weapon.y = obj.y;
   }
 
   getDirection(): Direction {

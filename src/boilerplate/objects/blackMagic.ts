@@ -13,6 +13,7 @@ export class BlackMagic extends Weapon {
       y,
       key: "black-magic",
       type: "black-magic",
+      damageAmount: 50,
       timeAlive: 1000,
     });
 

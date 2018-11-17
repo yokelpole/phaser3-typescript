@@ -7,33 +7,22 @@ export class Sword extends Weapon {
   protected destroyTimeout;
 
   constructor({ scene, player, x, y, id }) {
-    super({ scene, player, x, y, key: "sword", id, type: "sword", timeAlive: 200 });
+    super({
+      scene,
+      id,
+      player,
+      x,
+      y,
+      key: "sword",
+      type: "sword",
+      damageAmount: 100,
+      timeAlive: 200
+    });
 
     this.scene.tweens.add({
       targets: this,
       duration: this.timeAlive,
       angle: this.angle + 90
     });
-
-    // TODO: This will probably need to be outside of this class -
-    // feels like more of a game state management concern.
-    // Might go in weapon class well.
-    this.scene.physics.add.collider(
-      this,
-      _.map(this.scene.otherPlayers),
-      (sword: Sword, player: Player) => {
-        if (player.id === this.parentId) return;
-
-        sword.makeDead();
-        player.makeDead();
-
-        this.scene.webSocketManager.addSprite(player);
-        this.scene.webSocketManager.addSprite(sword);
-
-        sword.destroy();
-        player.destroy();
-        clearTimeout(this.destroyTimeout);
-      }
-    );
   }
 }

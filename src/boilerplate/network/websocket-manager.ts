@@ -9,7 +9,7 @@ interface ConstructorParams {
   scene: MainScene;
 }
 
-interface ResponseObject {
+export interface ResponseObject {
   id: string;
   parentId?: string;
   x: number;
@@ -105,7 +105,8 @@ export class WebSocketManager {
         const player = _.first(_.filter(this.scene.otherPlayers, { id: obj.parentId }));
         if (!player) return;
 
-        player.addWeapon(obj.id);
+        if (player.weapon && player.weapon.active) player.updateWeapon(obj);
+        else player.addWeapon(obj.id);
       } else if (_.includes(PlayerTypes, obj.type)) {
         if (obj.health <= 0) return;
 
