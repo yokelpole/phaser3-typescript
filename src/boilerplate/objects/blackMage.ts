@@ -10,12 +10,9 @@ export class BlackMage extends Player {
   }
 
   addWeapon(id: string = undefined): void {
+    if (!this.canAddWeapon()) return;
+    
     super.addWeapon(id);
-
-    if (this.weapon) {
-      if (this.weapon.active) return;
-      if (this.weapon.id === id) return;
-    }
     
     this.weapon = new BlackMagic({
       id,

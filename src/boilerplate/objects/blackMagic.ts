@@ -14,6 +14,7 @@ export class BlackMagic extends Weapon {
       key: "black-magic",
       type: "black-magic",
       damageAmount: 50,
+      respawnDelay: 500,
       timeAlive: 1000,
     });
 

@@ -5,10 +5,12 @@ import { BaseObject } from "./baseObject";
 export class Weapon extends BaseObject {
   public player: Player;
   public damageAmount: number;
+  public canRespawn: boolean = false;
   protected timeAlive: number;
+  protected respawnDelay: number;
   protected destroyTimeout;
 
-  constructor({ scene, player, key, x, y, id, type, damageAmount, timeAlive }) {
+  constructor({ scene, player, key, x, y, id, type, damageAmount, respawnDelay, timeAlive }) {
     super({
       scene,
       id,
@@ -22,6 +24,7 @@ export class Weapon extends BaseObject {
     this.player = player;
     this.damageAmount = damageAmount;
     this.timeAlive = timeAlive;
+    this.respawnDelay = respawnDelay;
     this.scene.webSocketManager.addSprite(this);
     this.flipWeapon();
 
@@ -50,6 +53,11 @@ export class Weapon extends BaseObject {
     weapon.destroy();
     if (player.health <= 0) player.destroy();
     clearTimeout(this.destroyTimeout);
+  }
+
+  makeDead() {
+    super.makeDead();
+    setTimeout(() => this.canRespawn = true, this.respawnDelay);
   }
 
   flipWeapon(): void {

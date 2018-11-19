@@ -116,7 +116,17 @@ export class Player extends BaseObject {
 
   // To be extended by other classes.
   addWeapon(id: string = undefined): void {
-    if (this.weapon && !this.weapon.active) this.weapon = null;
+    if (this.weapon) this.weapon = null;
+  }
+
+  canAddWeapon(id: string = undefined): boolean {
+    if (this.weapon) {
+      if (this.weapon.active) return false;
+      if (this.weapon.id === id) return false;
+      if (!this.weapon.canRespawn) return false
+    }
+
+    return true;
   }
 
   updateWeapon(obj: ResponseObject): void {

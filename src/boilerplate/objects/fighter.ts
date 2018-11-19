@@ -21,13 +21,10 @@ export class Fighter extends Player {
   }
 
   addWeapon(id: string = undefined): void {
+    if (!this.canAddWeapon()) return;
+
     super.addWeapon(id);
     
-    if (this.weapon) {
-      if (this.weapon.active) return;
-      if (this.weapon.id === id) return;
-    }
-
     this.weapon = new Sword({
       id,
       scene: this.scene,
@@ -35,27 +32,10 @@ export class Fighter extends Player {
       x: this.x,
       y: this.y,
     });
-
-    this.positionSword();
-  }
-
-  positionSword(): void {
-    if (!this.weapon) return;
-
-    if (this.anims.getCurrentKey() === `${this.type}-down`) {
-      this.weapon.y = this.y + 16;
-      if (this.weapon.scene) this.weapon.setDepth(6); // Sword needs to be on top of fighter.
-    } else if (this.anims.getCurrentKey() === `${this.type}-up`) {
-      this.weapon.y = this.y - 16;
-    } else if (this.anims.getCurrentKey() === `${this.type}-left`) {
-      this.weapon.x = this.x - 16;
-    } else if (this.anims.getCurrentKey() === `${this.type}-right`) {
-      this.weapon.x = this.x + 16;
-    }
   }
 
   updatePlayerRemotely(x: number, y: number): void {
     super.updatePlayerRemotely(x, y);
-    if (this.weapon) this.positionSword();
+    if (this.weapon) this.weapon.positionSword();
   }
 }
